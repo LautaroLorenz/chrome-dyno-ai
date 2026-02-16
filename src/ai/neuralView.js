@@ -14,7 +14,8 @@ const INPUT_LABELS_SHORT = [
 
 const PADDING = 32;
 const NODE_RADIUS = 14;
-const MAX_LINE_WIDTH = 2;
+const MAX_LINE_WIDTH = 2.8;
+const MIN_LINE_WIDTH = 0.9;
 
 /**
  * Dibuja la red neuronal en el canvas.
@@ -43,9 +44,24 @@ export function drawNeuralNetwork(canvas, debug) {
   const { inputs, hidden, output } = debug;
 
   const layers = [
-    { nodes: inputs.length, values: inputs, labels: INPUT_LABELS_SHORT, color: "#22d3ee" },
-    { nodes: hidden.length, values: hidden.map((n) => n.postActivation), labels: null, color: "#a78bfa" },
-    { nodes: 1, values: [output.postActivation], labels: ["Saltar"], color: "#4ade80" },
+    {
+      nodes: inputs.length,
+      values: inputs,
+      labels: INPUT_LABELS_SHORT,
+      color: "#22d3ee",
+    },
+    {
+      nodes: hidden.length,
+      values: hidden.map((n) => n.postActivation),
+      labels: null,
+      color: "#a78bfa",
+    },
+    {
+      nodes: 1,
+      values: [output.postActivation],
+      labels: ["Saltar"],
+      color: "#4ade80",
+    },
   ];
 
   const cols = 3;
@@ -71,13 +87,18 @@ export function drawNeuralNetwork(canvas, debug) {
   const brain = debug._brain;
   if (brain) {
     ctx.strokeStyle = "rgba(148, 163, 184, 0.3)";
-    ctx.lineWidth = 0.8;
+    ctx.lineWidth = 1;
     for (let j = 0; j < inputs.length; j++) {
       for (let i = 0; i < hidden.length; i++) {
         const w1 = brain.W1[i][j];
         const alpha = Math.min(1, Math.abs(w1) / 2);
-        ctx.strokeStyle = w1 >= 0 ? `rgba(34, 197, 94, ${alpha})` : `rgba(239, 68, 68, ${alpha})`;
-        ctx.lineWidth = 0.5 + Math.min(MAX_LINE_WIDTH, Math.abs(w1) / 1.5);
+        ctx.strokeStyle =
+          w1 >= 0
+            ? `rgba(34, 197, 94, ${alpha})`
+            : `rgba(239, 68, 68, ${alpha})`;
+        ctx.lineWidth =
+          MIN_LINE_WIDTH +
+          Math.min(MAX_LINE_WIDTH - MIN_LINE_WIDTH, Math.abs(w1) / 1.5);
         ctx.beginPath();
         ctx.moveTo(positions[0][j].x + NODE_RADIUS, positions[0][j].y);
         ctx.lineTo(positions[1][i].x - NODE_RADIUS, positions[1][i].y);
@@ -87,8 +108,11 @@ export function drawNeuralNetwork(canvas, debug) {
     for (let j = 0; j < hidden.length; j++) {
       const w2 = brain.W2[0][j];
       const alpha = Math.min(1, Math.abs(w2) / 2);
-      ctx.strokeStyle = w2 >= 0 ? `rgba(34, 197, 94, ${alpha})` : `rgba(239, 68, 68, ${alpha})`;
-      ctx.lineWidth = 0.5 + Math.min(MAX_LINE_WIDTH, Math.abs(w2) / 1.5);
+      ctx.strokeStyle =
+        w2 >= 0 ? `rgba(34, 197, 94, ${alpha})` : `rgba(239, 68, 68, ${alpha})`;
+      ctx.lineWidth =
+        MIN_LINE_WIDTH +
+        Math.min(MAX_LINE_WIDTH - MIN_LINE_WIDTH, Math.abs(w2) / 1.5);
       ctx.beginPath();
       ctx.moveTo(positions[1][j].x + NODE_RADIUS, positions[1][j].y);
       ctx.lineTo(positions[2][0].x - NODE_RADIUS, positions[2][0].y);
@@ -102,7 +126,8 @@ export function drawNeuralNetwork(canvas, debug) {
     for (let row = 0; row < layer.nodes; row++) {
       const { x, y } = pos[row];
       const val = layer.values[row];
-      const intensity = typeof val === "number" ? Math.max(0, Math.min(1, val)) : 0.5;
+      const intensity =
+        typeof val === "number" ? Math.max(0, Math.min(1, val)) : 0.5;
       const alpha = 0.4 + 0.6 * intensity;
       ctx.fillStyle = layer.color;
       ctx.globalAlpha = alpha;
@@ -146,5 +171,4 @@ export function drawNeuralNetwork(canvas, debug) {
       }
     }
   }
-
 }
