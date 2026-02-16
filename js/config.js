@@ -11,4 +11,7 @@ const FPS = 60;
 const STATE_MAX_VELOCITY = 20;
 const STATE_OBSTACLE_HEIGHT_DIVISOR = 50;
 
-export { canvas, ctx, groundLevel, FPS, STATE_MAX_VELOCITY, STATE_OBSTACLE_HEIGHT_DIVISOR };
+// Puntos por frame sobrevivido
+const SURVIVAL_SCORE_BONUS = 0.01;
+
+export { canvas, ctx, groundLevel, FPS, STATE_MAX_VELOCITY, STATE_OBSTACLE_HEIGHT_DIVISOR, SURVIVAL_SCORE_BONUS };

@@ -2,7 +2,7 @@
  * Motor principal del juego.
  * Orquesta el loop, input, step y render.
  */
-import { canvas, ctx } from "./config.js";
+import { canvas, ctx, SURVIVAL_SCORE_BONUS } from "./config.js";
 import { updatePlayer, drawPlayer, resetPlayer } from "./player.js";
 import {
   updateObstacles,
@@ -53,13 +53,14 @@ export function step(action) {
   frameCount++;
 
   score += getPointsFromPassedObstacles();
+  if (!checkCollision()) {
+    score += SURVIVAL_SCORE_BONUS;
+  }
 
   let reward = score - prevScore;
   if (checkCollision()) {
     gameOver = true;
     reward = -1;
-  } else if (reward === 0) {
-    reward = 0.01; // pequeña recompensa por sobrevivir
   }
 
   return {
@@ -79,7 +80,7 @@ function render() {
   ctx.fillStyle = "#eee";
   ctx.font = "24px system-ui";
   ctx.textAlign = "left";
-  ctx.fillText(`Score: ${score}`, 20, 35);
+  ctx.fillText(`Score: ${score.toFixed(2)}`, 20, 35);
 
   if (gameOver) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -91,7 +92,7 @@ function render() {
     ctx.font = "20px system-ui";
     ctx.fillStyle = "#eee";
     ctx.fillText(
-      `Score: ${score} — Espacio para reiniciar`,
+      `Score: ${score.toFixed(2)} — Espacio para reiniciar`,
       canvas.width / 2,
       canvas.height / 2 + 50
     );
