@@ -3,7 +3,7 @@
  * Cada cerebro tiene configuración aleatoria inicial; se reproducen los mejores con mutación.
  */
 
-const INPUT_SIZE = 5;
+const INPUT_SIZE = 6;
 const HIDDEN_SIZE = 12;
 const OUTPUT_SIZE = 1;
 
@@ -46,10 +46,20 @@ export function loadBrainFromConfig(config) {
   const b = config.brain;
   if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
   let W1 = b.W1.map((row) => row.slice());
-  // Migrar modelos antiguos (4 entradas) a 5 entradas: añadir columna de pesos aleatorios
-  if (W1[0] && W1[0].length === 4) {
-    for (let i = 0; i < W1.length; i++) {
-      W1[i].push((Math.random() - 0.5) * 2);
+  // Migrar modelos antiguos: añadir columnas de pesos aleatorios según el tamaño
+  if (W1[0]) {
+    const currentSize = W1[0].length;
+    if (currentSize === 4) {
+      // Migrar de 4 a 6 entradas: añadir 2 columnas
+      for (let i = 0; i < W1.length; i++) {
+        W1[i].push((Math.random() - 0.5) * 2);
+        W1[i].push((Math.random() - 0.5) * 2);
+      }
+    } else if (currentSize === 5) {
+      // Migrar de 5 a 6 entradas: añadir 1 columna
+      for (let i = 0; i < W1.length; i++) {
+        W1[i].push((Math.random() - 0.5) * 2);
+      }
     }
   }
   return {
@@ -62,7 +72,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (5) -> oculta (12) -> salida (1).
+ * Estructura: entrada (6) -> oculta (12) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -75,7 +85,7 @@ export function createRandomBrain() {
 
 /**
  * Construye el vector de entrada para la red a partir del estado del juego.
- * [ dist. obstáculo, vel. Y, onGround, tam. obstáculo, alt. obstáculo ]
+ * [ dist. obstáculo, vel. Y, onGround, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo ]
  */
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
@@ -85,7 +95,9 @@ export function stateToInputs(state) {
   const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / 80 : 0;
   const nextHeight =
     state.nextObstacleHeight != null ? state.nextObstacleHeight / 80 : 0;
-  return [distNorm, velNorm, onGround, nextSize, nextHeight];
+  const nextGroundDist =
+    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / 80)) : 0;
+  return [distNorm, velNorm, onGround, nextSize, nextHeight, nextGroundDist];
 }
 
 /**
@@ -198,6 +210,7 @@ export const INPUT_LABELS = [
   "En suelo (0/1)",
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
+  "Dist. al suelo próximo obst. (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 

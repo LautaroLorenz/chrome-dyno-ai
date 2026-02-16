@@ -24,6 +24,8 @@ export function createInitialState() {
     nextObstacleSize: null,
     /** Altura del próximo obstáculo (para IA). */
     nextObstacleHeight: null,
+    /** Distancia al suelo del próximo obstáculo (para IA). */
+    nextObstacleGroundDistance: null,
   };
 }
 
@@ -89,10 +91,11 @@ export function updateState(state, playerJumps) {
   }
 
   state.score += C.SCORE_PER_FRAME;
-  const { dist, nextSize, nextHeight } = getNextObstacleInfo(player, state.obstacles);
+  const { dist, nextSize, nextHeight, nextGroundDist } = getNextObstacleInfo(player, state.obstacles);
   state.distanceToNextObstacle = dist;
   state.nextObstacleSize = nextSize;
   state.nextObstacleHeight = nextHeight;
+  state.nextObstacleGroundDistance = nextGroundDist;
   return state;
 }
 
@@ -106,6 +109,7 @@ export function getStateSnapshot(state) {
     distanceToNextObstacle: state.distanceToNextObstacle,
     nextObstacleSize: state.nextObstacleSize,
     nextObstacleHeight: state.nextObstacleHeight,
+    nextObstacleGroundDistance: state.nextObstacleGroundDistance,
   };
 }
 
@@ -129,10 +133,11 @@ function getNextObstacleInfo(player, obstacles) {
       nearest = obs;
     }
   }
-  if (nearest == null) return { dist: null, nextSize: null, nextHeight: null };
+  if (nearest == null) return { dist: null, nextSize: null, nextHeight: null, nextGroundDist: null };
   return {
     dist: nearest.x - playerRight,
     nextSize: nearest.width,
     nextHeight: nearest.height,
+    nextGroundDist: C.GROUND_Y - nearest.y,
   };
 }
