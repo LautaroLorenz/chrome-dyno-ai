@@ -56,10 +56,13 @@ export function updateState(state, playerJumps) {
     state.obstacles.length > 0
       ? Math.max(...state.obstacles.map((o) => o.x + C.OBSTACLE_SIZE))
       : 0;
+  const minGap = C.OBSTACLE_SPAWN_GAP_MIN;
+  const maxGap = C.OBSTACLE_SPAWN_GAP_MAX;
+  const gap = minGap + Math.random() * (maxGap - minGap);
   const shouldSpawn =
-    state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - C.OBSTACLE_SPAWN_GAP;
+    state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - minGap;
   if (shouldSpawn) {
-    const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + C.OBSTACLE_SPAWN_GAP;
+    const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + gap;
     state.obstacles.push({
       x: spawnX,
       y: C.GROUND_Y,

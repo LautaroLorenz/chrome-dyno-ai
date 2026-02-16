@@ -73,6 +73,32 @@ body {
   background: #0f3460;
 }
 
+.humano-btns {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.humano-btns .btn-back {
+  margin-top: 0;
+}
+.btn-restart {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #16213e;
+  color: #e0e0e0;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-restart:hover {
+  background: #0f3460;
+}
+
 .game-page {
   display: flex;
   flex-direction: column;

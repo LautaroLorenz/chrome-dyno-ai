@@ -11,12 +11,16 @@
       <h1>Jugar Humano</h1>
       <p class="game-hint">Espacio: saltar</p>
       <canvas id="game-canvas" class="game-canvas"></canvas>
-      <a href="index.html" class="btn-back">← Volver al menú</a>
+      <div class="humano-btns">
+        <button type="button" id="btn-restart" class="btn-restart">Reiniciar</button>
+        <a href="index.html" class="btn-back">← Volver al menú</a>
+      </div>
     </div>
     <script type="module">
       import { runHumanoGame } from "./src/humano.js";
       const canvas = document.getElementById("game-canvas");
-      runHumanoGame(canvas);
+      const controls = runHumanoGame(canvas);
+      document.getElementById("btn-restart").addEventListener("click", () => controls.restart());
     </script>
   </body>
 </html>

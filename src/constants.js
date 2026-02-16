@@ -14,7 +14,8 @@ export const GROUND_Y = WORLD_HEIGHT - PLAYER_SIZE;
 
 export const OBSTACLE_SIZE = 28;
 export const OBSTACLE_SPEED = 5;
-export const OBSTACLE_SPAWN_GAP = 220;
+export const OBSTACLE_SPAWN_GAP_MIN = 180;
+export const OBSTACLE_SPAWN_GAP_MAX = 280;
 export const OBSTACLE_BASE_X = WORLD_WIDTH;
 
 export const SCORE_PER_FRAME = 0.1;

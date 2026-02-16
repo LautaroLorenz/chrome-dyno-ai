@@ -6,7 +6,7 @@ import { setCanvasSize, render } from "./render.js";
 
 export function runHumanoGame(canvas) {
   setCanvasSize(canvas);
-  const state = createInitialState();
+  let state = createInitialState();
   let pendingJump = false;
 
   const onKeyDown = (e) => {
@@ -28,10 +28,23 @@ export function runHumanoGame(canvas) {
       window.removeEventListener("keydown", onKeyDown);
     }
   }
+
+  function restart() {
+    if (rafId != null) cancelAnimationFrame(rafId);
+    window.removeEventListener("keydown", onKeyDown);
+    state = createInitialState();
+    pendingJump = false;
+    window.addEventListener("keydown", onKeyDown);
+    rafId = requestAnimationFrame(loop);
+  }
+
   rafId = requestAnimationFrame(loop);
 
-  return function stop() {
-    window.removeEventListener("keydown", onKeyDown);
-    if (rafId != null) cancelAnimationFrame(rafId);
+  return {
+    stop() {
+      window.removeEventListener("keydown", onKeyDown);
+      if (rafId != null) cancelAnimationFrame(rafId);
+    },
+    restart,
   };
 }
