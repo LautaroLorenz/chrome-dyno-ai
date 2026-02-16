@@ -126,7 +126,7 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   return b;
 }
 
-const NUM_OFFSPRING = 10;
+const NUM_OFFSPRING = 20;
 const MUTATE_RATE = 0.15;
 const MUTATE_AMOUNT = 0.25;
 

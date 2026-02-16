@@ -1,6 +1,6 @@
 /**
- * Modo Entrenar AI: 10 jugadores con red de 3 capas, cada uno con configuración aleatoria.
- * Cada generación se eligen los 4 mejores (por score) y se reproducen con mutación para formar 10 nuevos.
+ * Modo Entrenar AI: 20 jugadores con red de 3 capas, cada uno con configuración aleatoria.
+ * Cada generación se reproducen con mutación en proporción al score para formar 20 nuevos.
  */
 import { createInitialState, updateState } from "./gameState.js";
 import { setCanvasSize, render } from "./render.js";
@@ -14,7 +14,7 @@ import {
 import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 
-const NUM_PLAYERS = 10;
+const NUM_PLAYERS = 20;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 100;
