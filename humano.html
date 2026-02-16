@@ -7,10 +7,16 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="page-container">
+    <div class="page-container game-page">
       <h1>Jugar Humano</h1>
-      <p>Modo jugador humano</p>
+      <p class="game-hint">Espacio: saltar</p>
+      <canvas id="game-canvas" class="game-canvas"></canvas>
       <a href="index.html" class="btn-back">← Volver al menú</a>
     </div>
+    <script type="module">
+      import { runHumanoGame } from "./src/humano.js";
+      const canvas = document.getElementById("game-canvas");
+      runHumanoGame(canvas);
+    </script>
   </body>
 </html>
