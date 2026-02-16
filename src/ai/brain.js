@@ -147,3 +147,46 @@ export function nextGeneration(brains, scores) {
 
 export const BRAIN_INPUT_SIZE = INPUT_SIZE;
 export const BRAIN_HIDDEN_SIZE = HIDDEN_SIZE;
+
+export const INPUT_LABELS = [
+  "Dist. al obstáculo (0-1)",
+  "Velocidad Y (norm)",
+  "En suelo (0/1)",
+  "Tamaño próximo obst. (0-1)",
+];
+export const OUTPUT_LABELS = ["Saltar (prob.)"];
+
+/**
+ * Forward pass con información detallada para visualización: activaciones por capa,
+ * pesos y bias involucrados, decisión final.
+ */
+export function forwardDebug(brain, inputs) {
+  const hiddenPre = [];
+  const hiddenPost = [];
+  for (let i = 0; i < HIDDEN_SIZE; i++) {
+    let sum = brain.b1[i];
+    for (let j = 0; j < INPUT_SIZE; j++) sum += brain.W1[i][j] * inputs[j];
+    hiddenPre[i] = sum;
+    hiddenPost[i] = relu(sum);
+  }
+  let outPre = brain.b2[0];
+  for (let i = 0; i < HIDDEN_SIZE; i++) outPre += brain.W2[0][i] * hiddenPost[i];
+  const outPost = sigmoid(outPre);
+  return {
+    inputs: inputs.slice(),
+    hidden: hiddenPre.map((pre, i) => ({
+      bias: brain.b1[i],
+      weights: brain.W1[i].slice(),
+      preActivation: pre,
+      postActivation: hiddenPost[i],
+    })),
+    output: {
+      bias: brain.b2[0],
+      weights: brain.W2[0].slice(),
+      preActivation: outPre,
+      postActivation: outPost,
+    },
+    decision: outPost > 0.5,
+    threshold: 0.5,
+  };
+}

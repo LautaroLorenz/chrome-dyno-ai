@@ -122,3 +122,29 @@ body {
   height: auto;
   aspect-ratio: 5 / 1;
 }
+
+/* Red neuronal: visualización gráfica */
+.red-neuronal {
+  text-align: center;
+  margin: 1.5rem auto;
+  padding: 1rem;
+  background: #1a1a2e;
+  border-radius: 8px;
+  border: 1px solid #2d2d44;
+}
+.red-neuronal h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #fff;
+}
+.red-neuronal-canvas {
+  display: block;
+  margin: 0 auto;
+  background: #0f172a;
+  border-radius: 6px;
+}
+.red-neuronal-legend {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
