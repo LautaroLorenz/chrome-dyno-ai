@@ -118,7 +118,9 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
         nextHeight: stateOrPlayer.nextObstacleHeight,
         nextGroundDist: stateOrPlayer.nextObstacleGroundDistance,
       };
-  const timeSinceLastJump = isShared ? (stateOrPlayer.timeSinceLastJump || 0) : (stateOrPlayer.timeSinceLastJump || 0);
+  const timeSinceLastJump = isShared
+    ? stateOrPlayer.timeSinceLastJump || 0
+    : stateOrPlayer.timeSinceLastJump || 0;
 
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
   const maxVelY = Math.abs(C.JUMP_FORCE);
@@ -127,10 +129,17 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
   const jumpHeightMax = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
   const playerGroundDist = Math.min(1, Math.max(0, rawDist / jumpHeightMax));
   const maxObstacleDim = 2 * C.PLAYER_SIZE;
-  const nextSize = nextInfo.nextSize != null ? nextInfo.nextSize / maxObstacleDim : 0;
-  const nextHeight = nextInfo.nextHeight != null ? nextInfo.nextHeight / maxObstacleDim : 0;
+  const nextSize =
+    nextInfo.nextSize != null ? nextInfo.nextSize / maxObstacleDim : 0;
+  const nextHeight =
+    nextInfo.nextHeight != null ? nextInfo.nextHeight / maxObstacleDim : 0;
   const nextGroundDist =
-    nextInfo.nextGroundDist != null ? Math.min(1, Math.max(0, nextInfo.nextGroundDist / C.OBSTACLE_Y_OFFSET_MAX)) : 0;
+    nextInfo.nextGroundDist != null
+      ? Math.min(
+          1,
+          Math.max(0, nextInfo.nextGroundDist / C.OBSTACLE_Y_OFFSET_MAX),
+        )
+      : 0;
 
   const timeSinceJump = Math.min(1, timeSinceLastJump / 300);
 
@@ -142,9 +151,21 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
   } else {
     maxJumpHeight = 0;
   }
-  const maxJumpHeightNorm = Math.min(1, Math.max(0, maxJumpHeight / jumpHeightMax));
+  const maxJumpHeightNorm = Math.min(
+    1,
+    Math.max(0, maxJumpHeight / jumpHeightMax),
+  );
 
-  return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist, timeSinceJump, maxJumpHeightNorm];
+  return [
+    distNorm,
+    velNorm,
+    playerGroundDist,
+    nextSize,
+    nextHeight,
+    nextGroundDist,
+    timeSinceJump,
+    maxJumpHeightNorm,
+  ];
 }
 
 /**
@@ -177,7 +198,8 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   const b = cloneBrain(brain);
   for (let i = 0; i < b.W1.length; i++) {
     for (let j = 0; j < b.W1[i].length; j++) {
-      if (Math.random() < rate) b.W1[i][j] += (Math.random() - 0.5) * 2 * amount;
+      if (Math.random() < rate)
+        b.W1[i][j] += (Math.random() - 0.5) * 2 * amount;
     }
   }
   for (let i = 0; i < b.b1.length; i++) {
@@ -185,7 +207,8 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   }
   for (let i = 0; i < b.W2.length; i++) {
     for (let j = 0; j < b.W2[i].length; j++) {
-      if (Math.random() < rate) b.W2[i][j] += (Math.random() - 0.5) * 2 * amount;
+      if (Math.random() < rate)
+        b.W2[i][j] += (Math.random() - 0.5) * 2 * amount;
     }
   }
   for (let i = 0; i < b.b2.length; i++) {
@@ -222,7 +245,8 @@ export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
 
   const counts = quota.map((q) => Math.floor(q));
   let sum = counts.reduce((a, b) => a + b, 0);
-  const remainder = quota.map((q, i) => ({ i, frac: q - Math.floor(q) }))
+  const remainder = quota
+    .map((q, i) => ({ i, frac: q - Math.floor(q) }))
     .sort((a, b) => b.frac - a.frac);
   for (let k = 0; sum < numOffspring && k < remainder.length; k++) {
     counts[remainder[k].i] += 1;
@@ -277,7 +301,8 @@ export function forwardDebug(brain, inputs) {
     hiddenPost[i] = relu(sum);
   }
   let outPre = brain.b2[0];
-  for (let i = 0; i < HIDDEN_SIZE; i++) outPre += brain.W2[0][i] * hiddenPost[i];
+  for (let i = 0; i < HIDDEN_SIZE; i++)
+    outPre += brain.W2[0][i] * hiddenPost[i];
   const outPost = sigmoid(outPre);
   return {
     inputs: inputs.slice(),
