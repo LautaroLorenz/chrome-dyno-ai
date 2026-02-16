@@ -1,46 +1,52 @@
 /**
  * Dibuja el estado del juego en el canvas.
+ * Si el canvas tiene tamaño distinto al mundo, se escala el dibujado.
  */
 import * as C from "./constants.js";
 
-export function setCanvasSize(canvas) {
-  canvas.width = C.WORLD_WIDTH;
-  canvas.height = C.WORLD_HEIGHT;
+export function setCanvasSize(canvas, width = C.WORLD_WIDTH, height = C.WORLD_HEIGHT) {
+  canvas.width = width;
+  canvas.height = height;
 }
 
 export function render(canvas, state) {
   const ctx = canvas.getContext("2d");
-  const w = C.WORLD_WIDTH;
-  const h = C.WORLD_HEIGHT;
+  const w = canvas.width;
+  const h = canvas.height;
+  const scaleX = w / C.WORLD_WIDTH;
+  const scaleY = h / C.WORLD_HEIGHT;
+  const r = (v) => Math.round(v);
 
   ctx.fillStyle = "#1a1a2e";
   ctx.fillRect(0, 0, w, h);
 
+  const groundY = C.GROUND_Y + C.PLAYER_SIZE;
   ctx.fillStyle = "#2d2d44";
-  ctx.fillRect(0, C.GROUND_Y + C.PLAYER_SIZE, w, h - C.GROUND_Y - C.PLAYER_SIZE);
+  ctx.fillRect(0, r(groundY * scaleY), w, h - r(groundY * scaleY));
 
   const { player, obstacles, score, alive } = state;
 
   ctx.fillStyle = alive ? "#4ade80" : "#f87171";
-  ctx.fillRect(player.x, player.y, player.size, player.size);
+  ctx.fillRect(r(player.x * scaleX), r(player.y * scaleY), r(player.size * scaleX), r(player.size * scaleY));
 
   ctx.fillStyle = "#f59e0b";
   for (const obs of obstacles) {
-    ctx.fillRect(obs.x, obs.y, obs.size, obs.size);
+    ctx.fillRect(r(obs.x * scaleX), r(obs.y * scaleY), r(obs.size * scaleX), r(obs.size * scaleY));
   }
 
+  const fontSize = Math.max(8, 16 * Math.min(scaleX, scaleY));
   ctx.fillStyle = "#e0e0e0";
-  ctx.font = "16px system-ui";
-  ctx.fillText(`Score: ${Math.floor(score)}`, 10, 24);
+  ctx.font = `${fontSize}px system-ui`;
+  ctx.fillText(`Score: ${Math.floor(score)}`, 4, fontSize + 4);
 
   if (!alive) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "#fff";
-    ctx.font = "24px system-ui";
+    ctx.font = `${Math.max(12, fontSize * 1.2)}px system-ui`;
     ctx.textAlign = "center";
-    ctx.fillText("Game Over", w / 2, h / 2 - 10);
-    ctx.fillText(`Score: ${Math.floor(score)}`, w / 2, h / 2 + 20);
+    ctx.fillText("Game Over", w / 2, h / 2 - 4);
+    ctx.fillText(`Score: ${Math.floor(score)}`, w / 2, h / 2 + 12);
     ctx.textAlign = "left";
   }
 }

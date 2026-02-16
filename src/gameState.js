@@ -20,6 +20,8 @@ export function createInitialState() {
     speed: C.OBSTACLE_SPEED,
     /** Distancia del borde derecho del jugador al borde izquierdo del próximo obstáculo. */
     distanceToNextObstacle: null,
+    /** Ancho del próximo obstáculo (para IA). */
+    nextObstacleSize: null,
   };
 }
 
@@ -73,7 +75,9 @@ export function updateState(state, playerJumps) {
   }
 
   state.score += C.SCORE_PER_FRAME;
-  state.distanceToNextObstacle = getDistanceToNextObstacle(player, state.obstacles);
+  const { dist, nextSize } = getNextObstacleInfo(player, state.obstacles);
+  state.distanceToNextObstacle = dist;
+  state.nextObstacleSize = nextSize;
   return state;
 }
 
@@ -85,6 +89,7 @@ export function getStateSnapshot(state) {
     alive: state.alive,
     speed: state.speed,
     distanceToNextObstacle: state.distanceToNextObstacle,
+    nextObstacleSize: state.nextObstacleSize,
   };
 }
 
@@ -100,7 +105,7 @@ function collide(player, obstacle) {
   return pr > ol && pl < or && pb > ot && pt < ob;
 }
 
-function getDistanceToNextObstacle(player, obstacles) {
+function getNextObstacleInfo(player, obstacles) {
   const playerRight = player.x + player.size;
   let nearest = null;
   for (const obs of obstacles) {
@@ -108,6 +113,6 @@ function getDistanceToNextObstacle(player, obstacles) {
       nearest = obs;
     }
   }
-  if (nearest == null) return null;
-  return nearest.x - playerRight;
+  if (nearest == null) return { dist: null, nextSize: null };
+  return { dist: nearest.x - playerRight, nextSize: nearest.size };
 }

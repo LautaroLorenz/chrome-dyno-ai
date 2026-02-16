@@ -91,3 +91,34 @@ body {
   background: #1a1a2e;
   border-radius: 8px;
 }
+
+/* Entrenar AI: grid de 10 jugadores */
+.entrenar-info {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #888;
+}
+.entrenar-info strong {
+  color: #fff;
+}
+.entrenar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
+  max-width: 1100px;
+}
+.entrenar-cell {
+  background: #1a1a2e;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #2d2d44;
+}
+.entrenar-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 1;
+}
