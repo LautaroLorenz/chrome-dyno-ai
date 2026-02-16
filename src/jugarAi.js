@@ -31,9 +31,12 @@ function runGameLoop(canvas, neuralCanvas, legendEl) {
   }
 
   if (state.alive) {
-    rafId = requestAnimationFrame(() => runGameLoop(canvas, neuralCanvas, legendEl));
+    rafId = requestAnimationFrame(() =>
+      runGameLoop(canvas, neuralCanvas, legendEl),
+    );
   } else {
-    if (legendEl) legendEl.textContent = `Game Over · Score: ${Math.floor(state.score)}`;
+    if (legendEl)
+      legendEl.textContent = `Game Over · Score: ${Math.floor(state.score)}`;
   }
 }
 
@@ -53,20 +56,6 @@ export function startJugarAi(container) {
   `;
   container.appendChild(uploadSection);
 
-  const navBtns = document.createElement("div");
-  navBtns.className = "entrenar-nav-btns";
-  const backLink = document.createElement("a");
-  backLink.href = "index.html";
-  backLink.className = "btn-back";
-  backLink.textContent = "← Volver al menú";
-  const entrenarLink = document.createElement("a");
-  entrenarLink.href = "entrenar.html";
-  entrenarLink.className = "btn-back";
-  entrenarLink.textContent = "Entrenar AI";
-  navBtns.appendChild(backLink);
-  navBtns.appendChild(entrenarLink);
-  container.appendChild(navBtns);
-
   const gameWrap = document.createElement("div");
   gameWrap.className = "jugar-ai-game";
   gameWrap.style.display = "none";
@@ -84,7 +73,7 @@ export function startJugarAi(container) {
   const neuralCanvas = document.createElement("canvas");
   neuralCanvas.className = "red-neuronal-canvas";
   neuralCanvas.width = 540;
-  neuralCanvas.height = 300;
+  neuralCanvas.height = 460;
   redSection.appendChild(neuralCanvas);
   const legendEl = document.createElement("p");
   legendEl.className = "red-neuronal-legend";

@@ -178,7 +178,7 @@ export function startEntrenar(container) {
   const redCanvas = document.createElement("canvas");
   redCanvas.className = "red-neuronal-canvas";
   redCanvas.width = 540;
-  redCanvas.height = 300;
+  redCanvas.height = 460;
   redSection.appendChild(redCanvas);
   const redLegend = document.createElement("p");
   redLegend.className = "red-neuronal-legend";
