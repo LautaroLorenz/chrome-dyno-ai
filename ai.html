@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="page-container">
-      <h1>Jugar AI</h1>
-      <p>Modo jugar con IA</p>
-      <a href="index.html" class="btn-back">← Volver al menú</a>
-    </div>
+    <div id="jugar-ai-container" class="page-container game-page"></div>
+    <script type="module">
+      import { startJugarAi } from "./src/jugarAi.js";
+      const container = document.getElementById("jugar-ai-container");
+      startJugarAi(container);
+    </script>
   </body>
 </html>

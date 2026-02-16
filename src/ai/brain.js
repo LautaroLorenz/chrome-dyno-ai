@@ -37,6 +37,23 @@ function randomVector(n) {
 }
 
 /**
+ * Crea un cerebro desde un archivo JSON descargado durante el entrenamiento.
+ * @param {object} config - { brain: { W1, b1, W2, b2 } }
+ * @returns {object} cerebro listo para forward()
+ */
+export function loadBrainFromConfig(config) {
+  if (!config || !config.brain) return null;
+  const b = config.brain;
+  if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
+  return {
+    W1: b.W1.map((row) => row.slice()),
+    b1: b.b1.slice(),
+    W2: b.W2.map((row) => row.slice()),
+    b2: b.b2.slice(),
+  };
+}
+
+/**
  * Crea un cerebro con pesos y bias aleatorios.
  * Estructura: entrada (4) -> oculta (12) -> salida (1).
  */

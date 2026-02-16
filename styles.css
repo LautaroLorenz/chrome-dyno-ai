@@ -193,3 +193,42 @@ body {
   font-size: 0.85rem;
   color: #94a3b8;
 }
+
+/* Jugar AI: carga de modelo */
+.jugar-ai-upload {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #1a1a2e;
+  border-radius: 8px;
+  border: 1px solid #2d2d44;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.jugar-ai-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+.jugar-ai-file {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: #e0e0e0;
+  background: #0f172a;
+  border: 1px solid #2d2d44;
+  border-radius: 6px;
+}
+.jugar-ai-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.jugar-ai-canvas {
+  margin: 0.5rem 0;
+}
+.jugar-ai-neural {
+  margin-top: 1rem;
+}
