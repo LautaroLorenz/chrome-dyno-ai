@@ -14,7 +14,7 @@ import {
 import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 
-const NUM_PLAYERS = 100;
+const NUM_PLAYERS = 200;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 300;
