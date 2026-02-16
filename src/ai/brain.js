@@ -216,10 +216,10 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   return b;
 }
 
-const MUTATE_RATE = 0.05; // 5% - mutación baja
+const MUTATE_RATE = 0.1; // 10% - mutación baja
 const MUTATE_AMOUNT = 0.25; // ±0.25 - cambio pequeño
 
-const TOP_PERCENT = 0.001; // Solo el 0.1% que llegó más lejos se reproduce
+const TOP_PERCENT = 0.01; // Solo el 10% que llegó más lejos se reproduce
 /** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchísimos más hijos. */
 const SELECTION_WEIGHT_POWER = 3;
 
