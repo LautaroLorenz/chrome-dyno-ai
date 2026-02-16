@@ -304,6 +304,7 @@ function drawScoreChart() {
 }
 
 function updateModelViz(state) {
+  if (!modelCanvas) return;
   const prob = getJumpProbability(state);
   if (probFill) probFill.style.width = `${prob * 100}%`;
   drawModelViz(state);

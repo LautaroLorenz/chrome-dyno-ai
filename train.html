@@ -15,22 +15,22 @@
         background: #1a1a2e;
         color: #eee;
         font-family: system-ui, sans-serif;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .container {
         display: flex;
-        height: 100vh;
-        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
       }
       .game-section {
-        flex: 0 0 800px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
-        padding: 1rem;
-        border-right: 2px solid #0f3460;
       }
       #game {
         background: #16213e;
@@ -71,59 +71,6 @@
       .btn-play {
         display: inline-block;
       }
-      .viz-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        padding: 1rem;
-        min-width: 0;
-      }
-      .viz-panel {
-        background: #16213e;
-        border: 2px solid #0f3460;
-        border-radius: 8px;
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-      }
-      .viz-panel h3 {
-        font-size: 0.9rem;
-        color: #e94560;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-      }
-      .viz-panel.model-panel {
-        flex: 1;
-        min-height: 280px;
-        display: flex;
-        flex-direction: column;
-      }
-      #model-canvas {
-        width: 100%;
-        flex: 1;
-        min-height: 320px;
-        background: #0f1629;
-        border-radius: 4px;
-        display: block;
-      }
-      #chart-canvas {
-        width: 100%;
-        height: 100px;
-        background: #0f1629;
-        border-radius: 4px;
-        display: block;
-      }
-      .prob-bar {
-        height: 24px;
-        background: #0f1629;
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 0.25rem;
-      }
-      .prob-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #0f3460, #e94560);
-        transition: width 0.1s ease;
-      }
     </style>
   </head>
   <body>
@@ -138,22 +85,6 @@
         <div class="game-actions">
           <button type="button" id="btn-download-model" class="btn-save">Descargar modelo</button>
           <a href="play-ia.html" class="btn-play">Ver IA en acción</a>
-        </div>
-      </section>
-      <section class="viz-section">
-        <div class="viz-panel model-panel">
-          <h3>Red neuronal</h3>
-          <canvas id="model-canvas"></canvas>
-        </div>
-        <div class="viz-panel">
-          <h3>P(saltar) con estado actual</h3>
-          <div class="prob-bar">
-            <div class="prob-fill" id="prob-fill" style="width: 0%"></div>
-          </div>
-        </div>
-        <div class="viz-panel" style="flex: 0 0 auto">
-          <h3>Score por episodio</h3>
-          <canvas id="chart-canvas"></canvas>
         </div>
       </section>
     </div>
