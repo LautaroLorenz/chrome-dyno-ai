@@ -10,7 +10,10 @@ export const player = {
   groundY: canvas.height - 60
 };
 
-export function updatePlayer() {
+export function updatePlayer(jumpAction = false) {
+  if (jumpAction && player.y >= player.groundY) {
+    player.velocityY = player.jumpForce;
+  }
   player.velocityY += player.gravity;
   player.y += player.velocityY;
 

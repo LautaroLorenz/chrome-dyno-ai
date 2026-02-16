@@ -1,10 +1,10 @@
-import { canvas, ctx, groundLevel } from './config.js';
+import { canvas, ctx, groundLevel, FPS } from './config.js';
 import { player } from './player.js';
 
 const obstacles = [];
 const obstacleSpeed = 5;
-const obstacleSpawnInterval = 1500;
-let lastSpawnTime = 0;
+const spawnIntervalFrames = Math.round((1500 / 1000) * FPS); // 90 frames ≈ 1.5s
+let lastSpawnFrame = -spawnIntervalFrames;
 
 function spawnObstacle() {
   const size = 35;
@@ -17,11 +17,10 @@ function spawnObstacle() {
   });
 }
 
-export function updateObstacles() {
-  const now = Date.now();
-  if (now - lastSpawnTime > obstacleSpawnInterval) {
+export function updateObstacles(frameCount) {
+  if (frameCount - lastSpawnFrame >= spawnIntervalFrames) {
     spawnObstacle();
-    lastSpawnTime = now;
+    lastSpawnFrame = frameCount;
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -63,9 +62,19 @@ export function checkCollision() {
   return false;
 }
 
-export function resetObstacles() {
+export function resetObstacles(frameCount = 0) {
   obstacles.length = 0;
-  lastSpawnTime = Date.now();
+  lastSpawnFrame = frameCount - spawnIntervalFrames;
+}
+
+export function getNearestObstacleInFront() {
+  let nearest = null;
+  for (const obs of obstacles) {
+    if (obs.x + obs.width > player.x) {
+      if (!nearest || obs.x < nearest.x) nearest = obs;
+    }
+  }
+  return nearest;
 }
 
 export function getPointsFromPassedObstacles() {
