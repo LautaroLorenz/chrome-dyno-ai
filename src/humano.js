@@ -1,12 +1,16 @@
 /**
  * Modo humano: loop del juego, tecla Space para saltar.
+ * Juega en el nivel 1 con obstáculos fijos.
  */
 import { createInitialState, updateState } from "./gameState.js";
 import { setCanvasSize, render } from "./render.js";
+import { getLevel, createLevelRunner } from "./levels/index.js";
+import * as C from "./constants.js";
 
 export function runHumanoGame(canvas) {
   setCanvasSize(canvas);
   let state = createInitialState();
+  let levelRunner = createLevelRunner(getLevel(1));
   let pendingJump = false;
 
   const onKeyDown = (e) => {
@@ -19,7 +23,8 @@ export function runHumanoGame(canvas) {
 
   let rafId;
   function loop() {
-    updateState(state, pendingJump);
+    const sharedObstacles = levelRunner.advance(C.OBSTACLE_SPEED);
+    updateState(state, pendingJump, sharedObstacles);
     pendingJump = false;
     render(canvas, state);
     if (state.alive) {
@@ -33,6 +38,7 @@ export function runHumanoGame(canvas) {
     if (rafId != null) cancelAnimationFrame(rafId);
     window.removeEventListener("keydown", onKeyDown);
     state = createInitialState();
+    levelRunner = createLevelRunner(getLevel(1));
     pendingJump = false;
     window.addEventListener("keydown", onKeyDown);
     rafId = requestAnimationFrame(loop);

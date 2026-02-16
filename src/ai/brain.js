@@ -106,23 +106,22 @@ export function createRandomBrain() {
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
-  const maxVelY = 2 * C.OBSTACLE_SPEED;
+  const maxVelY = Math.abs(C.JUMP_FORCE);
   const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / maxVelY));
-  // Distancia al suelo del jugador: altura del salto = 2×PLAYER_SIZE
   const rawDist = C.GROUND_Y - state.player.y;
-  const jumpHeightMax = 2 * C.PLAYER_SIZE;
+  const jumpHeightMax = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
   const playerGroundDist = Math.min(1, Math.max(0, rawDist / jumpHeightMax));
   const maxObstacleDim = 2 * C.PLAYER_SIZE;
   const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / maxObstacleDim : 0;
   const nextHeight =
     state.nextObstacleHeight != null ? state.nextObstacleHeight / maxObstacleDim : 0;
   const nextGroundDist =
-    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / maxObstacleDim)) : 0;
+    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / C.OBSTACLE_Y_OFFSET_MAX)) : 0;
   
   // Tiempo desde el último salto (normalizado, máximo ~300 frames = 5 segundos a 60fps)
   const timeSinceJump = Math.min(1, (state.timeSinceLastJump || 0) / 300);
   
-  // Altura máxima alcanzable desde la posición actual (máximo = 2×PLAYER_SIZE)
+  // Altura máxima alcanzable desde la posición actual (según JUMP_FORCE y GRAVITY)
   let maxJumpHeight;
   if (state.player.onGround) {
     maxJumpHeight = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
