@@ -219,7 +219,7 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
 const MUTATE_RATE = 0.05; // 5% - mutación baja para no romper estrategias
 const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
 
-const TOP_PERCENT = 0.2; // Solo el 20% que llegó más lejos se reproduce
+const TOP_PERCENT = 0.1; // Solo el 10% que llegó más lejos se reproduce
 /** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchos más hijos. */
 const SELECTION_WEIGHT_POWER = 3;
 /** Cuántos mejores pasan sin mutar a la siguiente generación (elitismo). */
