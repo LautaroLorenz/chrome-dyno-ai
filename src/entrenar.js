@@ -19,6 +19,8 @@ const NUM_PLAYERS = 100;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 300;
+/** Renderizar solo cada N frames (lógica sigue a 60fps, gráficos más espaciados para rendimiento). */
+const RENDER_EVERY_N_FRAMES = 2;
 
 const TRAINING_LEVEL = 1; // Las IA siempre entrenan en el nivel 1
 
@@ -28,6 +30,7 @@ let levelRunner = null; // Runner del nivel 1 para obstáculos compartidos
 let generation = 0;
 let rafId = null;
 let trainingStopped = false;
+let frameCount = 0; // Para renderizado diferido
 
 function initPlayers() {
   brains = [];
@@ -86,9 +89,6 @@ function renderAll(canvases, genEl, bestEl, redCanvas, redLegend) {
   for (let i = 0; i < NUM_PLAYERS; i++) {
     render(canvases[i], states[i]);
   }
-  if (genEl) genEl.textContent = generation;
-  const maxScore = states.reduce((m, s) => Math.max(m, s.score), 0);
-  if (bestEl) bestEl.textContent = Math.floor(maxScore);
   updateRedNeuronalPanel(redCanvas, redLegend);
 }
 
@@ -135,10 +135,20 @@ function runGeneration(
   btnDownload,
 ) {
   if (trainingStopped) return;
+  // Lógica del juego siempre a 60fps
   const allDead = stepAll();
-  renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
-
+  
+  // Actualizar estadísticas cada frame (generación y mejor score)
   const maxScore = states.reduce((m, s) => Math.max(m, s.score), 0);
+  if (genEl) genEl.textContent = generation;
+  if (bestEl) bestEl.textContent = Math.floor(maxScore);
+  
+  // Renderizar solo cada N frames para mejorar rendimiento
+  if (frameCount % RENDER_EVERY_N_FRAMES === 0) {
+    renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
+  }
+  frameCount += 1;
+
   if (maxScore >= SCORE_GOAL) {
     trainingStopped = true;
     if (genEl) genEl.textContent = generation + " ✓";
@@ -154,10 +164,13 @@ function runGeneration(
     const scores = states.map((s) => s.score);
     brains = nextGeneration(brains, scores, NUM_PLAYERS);
     generation += 1;
+    frameCount = 0; // Reiniciar contador de frames
     levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL)); // Reiniciar nivel 1
     for (let i = 0; i < NUM_PLAYERS; i++) {
       states[i] = createInitialState();
     }
+    // Renderizar inmediatamente al empezar nueva generación
+    renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
   }
   rafId = requestAnimationFrame(() =>
     runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload),
