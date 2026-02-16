@@ -220,53 +220,31 @@ const NUM_OFFSPRING = 20;
 const MUTATE_RATE = 0.1; // 10% - mutación baja
 const MUTATE_AMOUNT = 0.2; // ±0.2 - cambio pequeño
 
+const TOP_PERCENT = 0.2; // Solo el 20% que llegó más lejos se reproduce
+
 /**
- * Genera la siguiente generación: cada cerebro aporta hijos en proporción a su score.
- * A mayor score, más descendientes (copias mutadas).
+ * Genera la siguiente generación: solo el top 20% (por score) se reproduce con pequeñas mutaciones.
  * @param {object[]} brains - Array de cerebros de la generación actual
  * @param {number[]} scores - Array de scores correspondientes a cada cerebro
- * @param {number} numOffspring - Número de descendientes a generar (por defecto NUM_OFFSPRING)
+ * @param {number} numOffspring - Número de descendientes a generar
  * @returns {object[]} Array de nuevos cerebros para la siguiente generación
  */
 export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
   if (brains.length === 0 || scores.length === 0) {
-    // Si no hay cerebros, crear cerebros aleatorios
     const next = [];
-    for (let i = 0; i < numOffspring; i++) {
-      next.push(createRandomBrain());
-    }
+    for (let i = 0; i < numOffspring; i++) next.push(createRandomBrain());
     return next;
   }
 
-  const epsilon = 1e-6;
-  const total = scores.reduce((a, b) => a + b, 0) + epsilon;
-  const quota = scores.map((s) => ((s + epsilon) / total) * numOffspring);
-
-  const counts = quota.map((q) => Math.floor(q));
-  let sum = counts.reduce((a, b) => a + b, 0);
-  const remainder = quota
-    .map((q, i) => ({ i, frac: q - Math.floor(q) }))
-    .sort((a, b) => b.frac - a.frac);
-  for (let k = 0; sum < numOffspring && k < remainder.length; k++) {
-    counts[remainder[k].i] += 1;
-    sum += 1;
-  }
+  const indices = scores.map((s, i) => ({ i, score: s }));
+  indices.sort((a, b) => b.score - a.score);
+  const topCount = Math.max(1, Math.floor(brains.length * TOP_PERCENT));
+  const topIndices = indices.slice(0, topCount).map((x) => x.i);
 
   const next = [];
-  for (let i = 0; i < brains.length; i++) {
-    for (let j = 0; j < counts[i]; j++) {
-      next.push(mutateBrain(brains[i], MUTATE_RATE, MUTATE_AMOUNT));
-    }
-  }
-  while (next.length > numOffspring) next.pop();
-  while (next.length < numOffspring) {
-    const best = scores.indexOf(Math.max(...scores));
-    if (best >= 0 && brains[best]) {
-      next.push(mutateBrain(brains[best], MUTATE_RATE, MUTATE_AMOUNT));
-    } else {
-      // Fallback: crear cerebro aleatorio si no hay mejor disponible
-      next.push(createRandomBrain());
-    }
+  for (let k = 0; k < numOffspring; k++) {
+    const parentIdx = topIndices[Math.floor(Math.random() * topIndices.length)];
+    next.push(mutateBrain(brains[parentIdx], MUTATE_RATE, MUTATE_AMOUNT));
   }
   return next;
 }
