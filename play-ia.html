@@ -12,14 +12,32 @@
       }
       body {
         min-height: 100vh;
+        background: #1a1a2e;
+        color: #eee;
+        font-family: system-ui, sans-serif;
+      }
+      body.show-upload {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 1rem;
-        background: #1a1a2e;
-        color: #eee;
-        font-family: system-ui, sans-serif;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
+      }
+      .game-section {
+        flex: 0 0 800px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-right: 2px solid #0f3460;
       }
       #game {
         background: #16213e;
@@ -88,9 +106,62 @@
         font-size: 0.9rem;
         color: #e94560;
       }
+      .viz-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        min-width: 0;
+      }
+      .viz-panel {
+        background: #16213e;
+        border: 2px solid #0f3460;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .viz-panel h3 {
+        font-size: 0.9rem;
+        color: #e94560;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .viz-panel.model-panel {
+        flex: 1;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+      }
+      #model-canvas {
+        width: 100%;
+        flex: 1;
+        min-height: 320px;
+        background: #0f1629;
+        border-radius: 4px;
+        display: block;
+      }
+      #chart-canvas {
+        width: 100%;
+        height: 100px;
+        background: #0f1629;
+        border-radius: 4px;
+        display: block;
+      }
+      .prob-bar {
+        height: 24px;
+        background: #0f1629;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.25rem;
+      }
+      .prob-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0f3460, #e94560);
+        transition: width 0.1s ease;
+      }
     </style>
   </head>
-  <body>
+  <body class="show-upload">
     <div id="upload-section" class="upload-section">
       <p class="upload-title">Subí el modelo para ver la IA en acción</p>
       <p class="upload-hint">Seleccioná el archivo <strong>dino-ai-model.json</strong> (el modelo ya entrenado que descargaste desde Entrenamiento).</p>
@@ -98,11 +169,31 @@
       <button type="button" id="btn-load-model" class="btn-load">Cargar modelo y jugar</button>
       <p id="upload-error" class="upload-error" hidden></p>
     </div>
-    <canvas id="game" width="800" height="400" hidden></canvas>
-    <div id="play-actions" class="play-actions" hidden>
-      <span id="play-status">IA jugando</span>
-      <a href="train.html">Entrenar</a>
-      <a href="index.html">Jugar (humano)</a>
+    <div id="play-container" class="container" hidden>
+      <section class="game-section">
+        <canvas id="game" width="800" height="400"></canvas>
+        <div id="play-actions" class="play-actions">
+          <span id="play-status">IA jugando</span>
+          <a href="train.html">Entrenar</a>
+          <a href="index.html">Jugar (humano)</a>
+        </div>
+      </section>
+      <section class="viz-section">
+        <div class="viz-panel model-panel">
+          <h3>Red neuronal</h3>
+          <canvas id="model-canvas"></canvas>
+        </div>
+        <div class="viz-panel">
+          <h3>P(saltar) con estado actual</h3>
+          <div class="prob-bar">
+            <div class="prob-fill" id="prob-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="viz-panel" style="flex: 0 0 auto">
+          <h3>Score por episodio</h3>
+          <canvas id="chart-canvas"></canvas>
+        </div>
+      </section>
     </div>
     <script src="node_modules/@tensorflow/tfjs/dist/tf.min.js"></script>
     <script type="module" src="js/play-ia.js"></script>
