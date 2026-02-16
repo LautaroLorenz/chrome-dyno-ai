@@ -5,7 +5,7 @@
 import * as C from "../constants.js";
 import { getNextObstacleInfo } from "../gameState.js";
 
-const INPUT_SIZE = 6;
+const INPUT_SIZE = 7;
 const HIDDEN_SIZE = INPUT_SIZE; // Misma cantidad de neuronas que entradas
 const OUTPUT_SIZE = 1;
 
@@ -48,7 +48,7 @@ function randomVector(n) {
 }
 
 /**
- * Crea un cerebro desde un archivo JSON (modelo actual: 6 entradas, 6 ocultas, 1 salida).
+ * Crea un cerebro desde un archivo JSON (modelo actual: 7 entradas, 7 ocultas, 1 salida).
  * @param {object} config - { brain: { W1, b1, W2, b2 } }
  * @returns {object} cerebro listo para forward()
  */
@@ -57,17 +57,26 @@ export function loadBrainFromConfig(config) {
   const b = config.brain;
   if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
   let W1 = b.W1.map((row) => row.slice());
-  if (W1[0] && W1[0].length > INPUT_SIZE) {
-    W1 = W1.map((row) => row.slice(0, INPUT_SIZE));
+  if (W1[0]) {
+    if (W1[0].length > INPUT_SIZE) {
+      W1 = W1.map((row) => row.slice(0, INPUT_SIZE));
+    } else if (W1[0].length === 6) {
+      for (let i = 0; i < W1.length; i++) W1[i].push((Math.random() - 0.5) * 2);
+    }
   }
   if (W1.length > HIDDEN_SIZE) {
     W1 = W1.slice(0, HIDDEN_SIZE);
+  } else if (W1.length === 6 && W1[0] && W1[0].length === 7) {
+    W1.push(W1[0].map(() => (Math.random() - 0.5) * 2));
   }
   let b1 = b.b1.slice();
   if (b1.length > HIDDEN_SIZE) b1 = b1.slice(0, HIDDEN_SIZE);
+  else if (b1.length === 6) b1.push((Math.random() - 0.5) * 2);
   let W2 = b.W2.map((row) => row.slice());
   if (W2[0] && W2[0].length > HIDDEN_SIZE) {
     W2 = W2.map((row) => row.slice(0, HIDDEN_SIZE));
+  } else if (W2[0] && W2[0].length === 6) {
+    W2 = W2.map((row) => [...row, (Math.random() - 0.5) * 2]);
   }
   return {
     W1,
@@ -79,7 +88,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (6) -> oculta (6) -> salida (1).
+ * Estructura: entrada (7) -> oculta (7) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -93,7 +102,7 @@ export function createRandomBrain() {
 /**
  * Construye el vector de entrada para la red.
  * Acepta (state) para humano/jugarAi o (player, sharedObstacles) para entrenamiento compartido.
- * [ dist. obstáculo, vel. Y, dist. al suelo player, ancho obst., alt. obstáculo, dist. al suelo obstáculo ]
+ * [ dist. obstáculo, vel. Y, dist. al suelo player, ancho obst., alt. obst., dist. suelo obst., dist. borde inferior player a borde superior obst. ]
  */
 export function stateToInputs(stateOrPlayer, sharedObstacles) {
   const isShared = Array.isArray(sharedObstacles);
@@ -128,6 +137,16 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
         )
       : 0;
 
+  const playerBottom = player.y + player.size;
+  const obstacleTop =
+    nextInfo.nextGroundDist != null
+      ? C.GROUND_Y - nextInfo.nextGroundDist
+      : null;
+  const gap =
+    obstacleTop != null ? obstacleTop - playerBottom : 2 * C.PLAYER_SIZE;
+  const gapNorm =
+    Math.max(0, Math.min(1, gap / (2 * C.PLAYER_SIZE)));
+
   return [
     distNorm,
     velNorm,
@@ -135,6 +154,7 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
     nextSize,
     nextHeight,
     nextGroundDist,
+    gapNorm,
   ];
 }
 
@@ -272,6 +292,7 @@ export const INPUT_LABELS = [
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
   "Dist. al suelo próximo obst. (0-1)",
+  "Dist. player abajo → obst. arriba (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 

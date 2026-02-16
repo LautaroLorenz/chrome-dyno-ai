@@ -10,6 +10,7 @@ const INPUT_LABELS_SHORT = [
   "4. Ancho obst.",
   "5. Altura obst.",
   "6. Dist. suelo obst.",
+  "7. Gap player→obst.",
 ];
 
 const PADDING = 32;
