@@ -1,25 +1,28 @@
 /**
  * Constantes del juego: dimensiones, física y velocidad.
- * Centralizadas para mantener el estado coherente y reutilizar en IA.
+ * Todo basado en PLAYER_SIZE (alto y ancho del jugador).
  */
 export const WORLD_WIDTH = 800;
 export const WORLD_HEIGHT = 160;
 
 export const PLAYER_SIZE = 24;
 export const PLAYER_X = 60;
-export const GRAVITY = 0.6;
-export const JUMP_FORCE = -12;
+
+/** Velocidad horizontal del escenario (obstáculos hacia la izquierda). */
+export const OBSTACLE_SPEED = 5;
+/** Gravedad y salto: altura del salto = 2×PLAYER_SIZE, largo del salto = 4×PLAYER_SIZE. */
+export const GRAVITY = (OBSTACLE_SPEED * OBSTACLE_SPEED) / PLAYER_SIZE;
+export const JUMP_FORCE = -3 * OBSTACLE_SPEED;
 
 export const GROUND_Y = WORLD_HEIGHT - PLAYER_SIZE;
 
-export const OBSTACLE_SIZE = 28;
-export const OBSTACLE_MIN_WIDTH = 20;
-export const OBSTACLE_MAX_WIDTH = 40;
-export const OBSTACLE_MIN_HEIGHT = 18;
-export const OBSTACLE_MAX_HEIGHT = 45;
-/** Rango de Y: obstáculos en suelo (GROUND_Y) o flotando hasta GROUND_Y - OBSTACLE_Y_OFFSET_MAX */
-export const OBSTACLE_Y_OFFSET_MAX = 80;
-export const OBSTACLE_SPEED = 5;
+/** Obstáculos: ancho y alto = 1× o 2× PLAYER_SIZE. */
+export const OBSTACLE_MIN_WIDTH = PLAYER_SIZE;
+export const OBSTACLE_MAX_WIDTH = 2 * PLAYER_SIZE;
+export const OBSTACLE_MIN_HEIGHT = PLAYER_SIZE;
+export const OBSTACLE_MAX_HEIGHT = 2 * PLAYER_SIZE;
+/** Distancia al suelo: múltiplo de PLAYER_SIZE (0, 1× o 2×). */
+export const OBSTACLE_Y_OFFSET_MAX = 3 * PLAYER_SIZE;
 export const OBSTACLE_SPAWN_GAP_MIN = 180;
 export const OBSTACLE_SPAWN_GAP_MAX = 280;
 export const OBSTACLE_BASE_X = WORLD_WIDTH;

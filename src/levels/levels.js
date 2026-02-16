@@ -28,18 +28,15 @@ function generateLevel(seed, obstacleCount = 220) {
         ? 0
         : C.OBSTACLE_SPAWN_GAP_MIN +
           rnd() * (C.OBSTACLE_SPAWN_GAP_MAX - C.OBSTACLE_SPAWN_GAP_MIN);
-    const width =
-      C.OBSTACLE_MIN_WIDTH +
-      rnd() * (C.OBSTACLE_MAX_WIDTH - C.OBSTACLE_MIN_WIDTH);
-    const height =
-      C.OBSTACLE_MIN_HEIGHT +
-      rnd() * (C.OBSTACLE_MAX_HEIGHT - C.OBSTACLE_MIN_HEIGHT);
-    const yOffset = rnd() * C.OBSTACLE_Y_OFFSET_MAX;
+    const width = rnd() < 0.5 ? C.OBSTACLE_MIN_WIDTH : C.OBSTACLE_MAX_WIDTH;
+    const height = rnd() < 0.5 ? C.OBSTACLE_MIN_HEIGHT : C.OBSTACLE_MAX_HEIGHT;
+    const yOffsetMultiplier = Math.floor(rnd() * 3);
+    const yOffset = yOffsetMultiplier * C.PLAYER_SIZE;
     level.push({
       gap: Math.round(gap),
-      width: Math.round(width),
-      height: Math.round(height),
-      yOffset: Math.round(yOffset),
+      width,
+      height,
+      yOffset,
     });
   }
   return level;

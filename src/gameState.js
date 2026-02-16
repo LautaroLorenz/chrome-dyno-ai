@@ -81,19 +81,16 @@ export function updateState(state, playerJumps, sharedObstacles = null) {
       state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - minGap;
     if (shouldSpawn) {
       const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + gap;
-      const width =
-        C.OBSTACLE_MIN_WIDTH +
-        Math.random() * (C.OBSTACLE_MAX_WIDTH - C.OBSTACLE_MIN_WIDTH);
-      const height =
-        C.OBSTACLE_MIN_HEIGHT +
-        Math.random() * (C.OBSTACLE_MAX_HEIGHT - C.OBSTACLE_MIN_HEIGHT);
-      const yOffset = Math.random() * C.OBSTACLE_Y_OFFSET_MAX;
+      const width = Math.random() < 0.5 ? C.OBSTACLE_MIN_WIDTH : C.OBSTACLE_MAX_WIDTH;
+      const height = Math.random() < 0.5 ? C.OBSTACLE_MIN_HEIGHT : C.OBSTACLE_MAX_HEIGHT;
+      const yOffsetMultiplier = Math.floor(Math.random() * 3);
+      const yOffset = yOffsetMultiplier * C.PLAYER_SIZE;
       const y = C.GROUND_Y - yOffset;
       state.obstacles.push({
         x: spawnX,
         y: Math.round(y),
-        width: Math.round(width),
-        height: Math.round(height),
+        width,
+        height,
       });
     }
   }

@@ -106,39 +106,32 @@ export function createRandomBrain() {
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
-  const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / 15));
-  // Distancia al suelo del jugador: cuando salta, player.y disminuye (porque JUMP_FORCE es negativo)
-  // Cuando está en el suelo: player.y = GROUND_Y, distancia = 0
-  // Cuando salta: player.y < GROUND_Y, entonces GROUND_Y - player.y > 0
-  // Normalizamos dividiendo por 80px (altura máxima aproximada del salto)
-  // Usamos Math.max para asegurar que nunca sea negativo (si player.y > GROUND_Y por algún error)
+  const maxVelY = 2 * C.OBSTACLE_SPEED;
+  const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / maxVelY));
+  // Distancia al suelo del jugador: altura del salto = 2×PLAYER_SIZE
   const rawDist = C.GROUND_Y - state.player.y;
-  const playerGroundDist = Math.min(1, Math.max(0, rawDist / 80));
-  const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / 80 : 0;
+  const jumpHeightMax = 2 * C.PLAYER_SIZE;
+  const playerGroundDist = Math.min(1, Math.max(0, rawDist / jumpHeightMax));
+  const maxObstacleDim = 2 * C.PLAYER_SIZE;
+  const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / maxObstacleDim : 0;
   const nextHeight =
-    state.nextObstacleHeight != null ? state.nextObstacleHeight / 80 : 0;
+    state.nextObstacleHeight != null ? state.nextObstacleHeight / maxObstacleDim : 0;
   const nextGroundDist =
-    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / 80)) : 0;
+    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / maxObstacleDim)) : 0;
   
   // Tiempo desde el último salto (normalizado, máximo ~300 frames = 5 segundos a 60fps)
   const timeSinceJump = Math.min(1, (state.timeSinceLastJump || 0) / 300);
   
-  // Altura máxima alcanzable desde la posición actual
-  // Si está subiendo (velocityY < 0): altura = (velocityY²) / (2 * GRAVITY)
-  // Si está en el suelo: altura máxima = (JUMP_FORCE²) / (2 * GRAVITY) ≈ 120px
-  // Si está cayendo (velocityY >= 0): altura máxima = 0
+  // Altura máxima alcanzable desde la posición actual (máximo = 2×PLAYER_SIZE)
   let maxJumpHeight;
   if (state.player.onGround) {
-    // En el suelo, puede saltar con JUMP_FORCE
     maxJumpHeight = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
   } else if (state.player.velocityY < 0) {
-    // Está subiendo, calcular altura restante
     maxJumpHeight = (state.player.velocityY * state.player.velocityY) / (2 * C.GRAVITY);
   } else {
-    // Está cayendo, no puede subir más
     maxJumpHeight = 0;
   }
-  const maxJumpHeightNorm = Math.min(1, Math.max(0, maxJumpHeight / 120));
+  const maxJumpHeightNorm = Math.min(1, Math.max(0, maxJumpHeight / jumpHeightMax));
   
   return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist, timeSinceJump, maxJumpHeightNorm];
 }
