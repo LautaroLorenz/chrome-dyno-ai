@@ -13,15 +13,18 @@ import {
 } from "./ai/brain.js";
 import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
+import { getLevel, createLevelRunner } from "./levels/index.js";
 
 const NUM_PLAYERS = 200;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 300;
 
+const TRAINING_LEVEL = 1; // Las IA siempre entrenan en el nivel 1
+
 let brains = [];
 let states = [];
-let masterState = null; // Estado maestro para generar obstáculos compartidos
+let levelRunner = null; // Runner del nivel 1 para obstáculos compartidos
 let generation = 0;
 let rafId = null;
 let trainingStopped = false;
@@ -29,7 +32,7 @@ let trainingStopped = false;
 function initPlayers() {
   brains = [];
   states = [];
-  masterState = createInitialState(); // Estado maestro para obstáculos compartidos
+  levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL));
   for (let i = 0; i < NUM_PLAYERS; i++) {
     brains.push(createRandomBrain());
     states.push(createInitialState());
@@ -37,12 +40,8 @@ function initPlayers() {
 }
 
 function stepAll() {
-  // Primero actualizar el estado maestro para generar obstáculos compartidos
-  // El estado maestro nunca salta (playerJumps = false), solo genera obstáculos
-  updateState(masterState, false);
-  
-  // Copiar obstáculos del estado maestro a todos los estados
-  const sharedObstacles = masterState.obstacles.map(obs => ({ ...obs }));
+  // Avanzar el nivel 1 y obtener obstáculos compartidos para este frame
+  const sharedObstacles = levelRunner.advance(C.OBSTACLE_SPEED);
   
   let allDead = true;
   for (let i = 0; i < NUM_PLAYERS; i++) {
@@ -143,7 +142,7 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownloa
     const scores = states.map((s) => s.score);
     brains = nextGeneration(brains, scores, NUM_PLAYERS);
     generation += 1;
-    masterState = createInitialState(); // Reiniciar estado maestro
+    levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL)); // Reiniciar nivel 1
     for (let i = 0; i < NUM_PLAYERS; i++) {
       states[i] = createInitialState();
     }
