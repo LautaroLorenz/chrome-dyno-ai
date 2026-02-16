@@ -7,6 +7,7 @@ import { step, getState, resetGame, render } from "./env.js";
 const STATE_SIZE = 4;
 const HIDDEN_SIZE = 32;
 const LEARNING_RATE = 0.001;
+const MODEL_DOWNLOAD_PREFIX = "dino-ai-model";
 const GAMMA = 0.99;
 const EXPLORATION_START = 0.3;
 const EXPLORATION_DECAY = 0.995;
@@ -343,11 +344,79 @@ function trainLoop() {
   requestAnimationFrame(trainLoop);
 }
 
+/**
+ * Descarga el modelo actual como model.json + archivo de pesos (para subir en play-ia).
+ */
+function downloadModelAsFiles(modelArtifacts) {
+  const weightsFileName = `${MODEL_DOWNLOAD_PREFIX}.weights.bin`;
+  const modelJSON = {
+    modelTopology: modelArtifacts.modelTopology,
+    weightsManifest: [
+      { paths: ["./" + weightsFileName], weights: modelArtifacts.weightSpecs },
+    ],
+  };
+  const jsonBlob = new Blob([JSON.stringify(modelJSON)], {
+    type: "application/json",
+  });
+  const jsonUrl = URL.createObjectURL(jsonBlob);
+  const a1 = document.createElement("a");
+  a1.href = jsonUrl;
+  a1.download = "model.json";
+  a1.click();
+  URL.revokeObjectURL(jsonUrl);
+
+  if (modelArtifacts.weightData) {
+    const weightsBlob = new Blob([modelArtifacts.weightData], {
+      type: "application/octet-stream",
+    });
+    const weightsUrl = URL.createObjectURL(weightsBlob);
+    const a2 = document.createElement("a");
+    a2.href = weightsUrl;
+    a2.download = weightsFileName;
+    a2.click();
+    URL.revokeObjectURL(weightsUrl);
+  }
+}
+
+async function downloadModel() {
+  if (!model) return;
+  const btn = document.getElementById("btn-download-model");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Descargando…";
+  }
+  try {
+    const handler = {
+      save: async (modelArtifacts) => {
+        downloadModelAsFiles(modelArtifacts);
+        return { modelArtifactsInfo: {} };
+      },
+    };
+    await model.save(handler);
+    if (btn) {
+      btn.textContent = "Descargado ✓";
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = "Descargar modelo";
+      }, 1500);
+    }
+  } catch (err) {
+    console.error("Error al descargar el modelo:", err);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Descargar modelo";
+    }
+  }
+}
+
 async function init() {
   await tf.ready();
   createModel();
   resetGame();
   trainLoop();
+
+  const btnDownload = document.getElementById("btn-download-model");
+  if (btnDownload) btnDownload.addEventListener("click", downloadModel);
 }
 
 init();

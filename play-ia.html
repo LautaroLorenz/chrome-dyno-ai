@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chrome Dyno AI - Ver IA</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        background: #1a1a2e;
+        color: #eee;
+        font-family: system-ui, sans-serif;
+      }
+      #game {
+        background: #16213e;
+        border: 2px solid #0f3460;
+        display: block;
+      }
+      .play-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .play-actions a {
+        color: #4a9eff;
+        text-decoration: none;
+      }
+      .play-actions a:hover {
+        text-decoration: underline;
+      }
+      #play-status {
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+      .upload-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background: #16213e;
+        border: 2px solid #0f3460;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+      .upload-title {
+        font-size: 1.1rem;
+        color: #eee;
+      }
+      .upload-hint {
+        font-size: 0.9rem;
+        color: #aaa;
+        text-align: center;
+        max-width: 420px;
+      }
+      .upload-hint strong {
+        color: #e94560;
+      }
+      #model-files {
+        font-size: 0.9rem;
+        color: #eee;
+      }
+      .btn-load {
+        padding: 0.5rem 1.25rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+        font-family: inherit;
+        background: #0f3460;
+        color: #eee;
+        transition: background 0.2s;
+      }
+      .btn-load:hover {
+        background: #e94560;
+      }
+      .upload-error {
+        font-size: 0.9rem;
+        color: #e94560;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="upload-section" class="upload-section">
+      <p class="upload-title">Subí el modelo para ver la IA en acción</p>
+      <p class="upload-hint">Seleccioná <strong>model.json</strong> y el archivo <strong>dino-ai-model.weights.bin</strong> (los que descargaste desde Entrenamiento).</p>
+      <input type="file" id="model-files" accept=".json,.bin" multiple />
+      <button type="button" id="btn-load-model" class="btn-load">Cargar modelo y jugar</button>
+      <p id="upload-error" class="upload-error" hidden></p>
+    </div>
+    <canvas id="game" width="800" height="400" hidden></canvas>
+    <div id="play-actions" class="play-actions" hidden>
+      <span id="play-status">IA jugando</span>
+      <a href="train.html">Entrenar</a>
+      <a href="index.html">Jugar (humano)</a>
+    </div>
+    <script src="node_modules/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script type="module" src="js/play-ia.js"></script>
+  </body>
+</html>
