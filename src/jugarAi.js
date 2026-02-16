@@ -56,6 +56,20 @@ export function startJugarAi(container) {
   `;
   container.appendChild(uploadSection);
 
+  const navBtns = document.createElement("div");
+  navBtns.className = "entrenar-nav-btns";
+  const backLink = document.createElement("a");
+  backLink.href = "index.html";
+  backLink.className = "btn-back";
+  backLink.textContent = "← Volver al menú";
+  const entrenarLink = document.createElement("a");
+  entrenarLink.href = "entrenar.html";
+  entrenarLink.className = "btn-back";
+  entrenarLink.textContent = "Entrenar AI";
+  navBtns.appendChild(backLink);
+  navBtns.appendChild(entrenarLink);
+  container.appendChild(navBtns);
+
   const gameWrap = document.createElement("div");
   gameWrap.className = "jugar-ai-game";
   gameWrap.style.display = "none";
@@ -80,6 +94,20 @@ export function startJugarAi(container) {
   redSection.appendChild(legendEl);
   gameWrap.appendChild(redSection);
 
+  const gameNavBtns = document.createElement("div");
+  gameNavBtns.className = "entrenar-nav-btns";
+  const gameBackLink = document.createElement("a");
+  gameBackLink.href = "index.html";
+  gameBackLink.className = "btn-back";
+  gameBackLink.textContent = "← Volver al menú";
+  const gameEntrenarLink = document.createElement("a");
+  gameEntrenarLink.href = "entrenar.html";
+  gameEntrenarLink.className = "btn-back";
+  gameEntrenarLink.textContent = "Entrenar AI";
+  gameNavBtns.appendChild(gameBackLink);
+  gameNavBtns.appendChild(gameEntrenarLink);
+  gameWrap.appendChild(gameNavBtns);
+
   container.appendChild(gameWrap);
 
   const fileInput = document.getElementById("ai-file-input");
@@ -100,6 +128,7 @@ export function startJugarAi(container) {
         state = createInitialState();
         gameWrap.style.display = "block";
         uploadSection.style.display = "none";
+        navBtns.style.display = "none";
         runGameLoop(canvas, neuralCanvas, legendEl);
       } catch (err) {
         alert("Error al cargar el archivo: " + err.message);
