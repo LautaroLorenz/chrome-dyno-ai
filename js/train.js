@@ -152,6 +152,8 @@ function drawModelViz(state) {
   ctx.fillRect(0, 0, cw, ch);
 
   const layers = [4, 12, 12, 1];
+  const inputLabels = ["Dist", "Alt", "Vel", "Suelo"];
+  const outputLabel = "P(saltar)";
   const layerGap = cw / (layers.length + 1);
   const nodeRadius = 6;
   const nodes = layers.map((n, i) => {
@@ -221,13 +223,29 @@ function drawModelViz(state) {
 
         const val = getDisplayValue(li, ni);
         if (val !== null) {
-          ctx.fillStyle = "#aaa";
+          ctx.fillStyle = "#eee";
           ctx.font = "9px monospace";
-          ctx.textAlign = "center";
-          ctx.textBaseline = li === 1 || li === 2 ? "top" : "middle";
-          const tx = node.x;
-          const ty = li === 1 || li === 2 ? node.y + nodeRadius + 4 : node.y;
-          ctx.fillText(formatVal(val), tx, ty);
+          if (li === 0) {
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              `${inputLabels[ni]} ${formatVal(val)}`,
+              node.x - nodeRadius - 6,
+              node.y
+            );
+          } else if (li === layers.length - 1) {
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              `${outputLabel} ${formatVal(val)}`,
+              node.x + nodeRadius + 6,
+              node.y
+            );
+          } else {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText(formatVal(val), node.x, node.y + nodeRadius + 4);
+          }
         }
       });
     });
