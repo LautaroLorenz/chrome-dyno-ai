@@ -23,8 +23,8 @@ export const OBSTACLE_MIN_HEIGHT = PLAYER_SIZE;
 export const OBSTACLE_MAX_HEIGHT = 2 * PLAYER_SIZE;
 /** Distancia al suelo: múltiplo de PLAYER_SIZE (0, 1× o 2×). */
 export const OBSTACLE_Y_OFFSET_MAX = 3 * PLAYER_SIZE;
-export const OBSTACLE_SPAWN_GAP_MIN = 180;
-export const OBSTACLE_SPAWN_GAP_MAX = 280;
+export const OBSTACLE_SPAWN_GAP_MIN = 7 * PLAYER_SIZE;
+export const OBSTACLE_SPAWN_GAP_MAX = 10 * PLAYER_SIZE;
 export const OBSTACLE_BASE_X = WORLD_WIDTH;
 
 export const SCORE_PER_FRAME = 0.1;

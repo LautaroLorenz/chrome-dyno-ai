@@ -209,7 +209,7 @@ const MUTATE_RATE = 0.05; // 5% - mutación baja para no romper estrategias
 const MUTATE_AMOUNT = 0.15; // sigma de mutación gaussiana (cambios pequeños más frecuentes)
 const MUTATE_DECAY = 0.995; // por generación: rate y amount bajan (0.995^gen). Al final se afina.
 
-const TOP_PERCENT = 0.1; // Solo el 10% que llegó más lejos se reproduce
+const TOP_PERCENT = 0.15; // Solo el 10% que llegó más lejos se reproduce
 /** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchos más hijos. */
 const SELECTION_WEIGHT_POWER = 3;
 /** Cuántos mejores pasan sin mutar a la siguiente generación (elitismo). */
@@ -217,7 +217,7 @@ const ELITISM_COUNT = 3;
 /** Probabilidad de que un hijo sea copia exacta del padre (sin mutar). Preserva más genotipos buenos. */
 const CLONE_PROBABILITY = 0.08;
 /** Si no hay mejora durante tantas generaciones, se inyectan cerebros aleatorios (anti-estancamiento). */
-const STAGNATION_THRESHOLD = 25;
+const STAGNATION_THRESHOLD = 3;
 const STAGNATION_INJECT_COUNT = 10;
 
 /**
