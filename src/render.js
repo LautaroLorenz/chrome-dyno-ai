@@ -50,3 +50,40 @@ export function render(canvas, state) {
     ctx.textAlign = "left";
   }
 }
+
+/**
+ * Dibuja el mundo compartido: múltiples jugadores y obstáculos en un solo canvas.
+ * sharedState: { players: Array<player>, obstacles: Array<obs>, maxDistance: number }
+ */
+export function renderSharedWorld(canvas, sharedState) {
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  const scaleX = w / C.WORLD_WIDTH;
+  const scaleY = h / C.WORLD_HEIGHT;
+  const r = (v) => Math.round(v);
+
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fillRect(0, 0, w, h);
+
+  const groundY = C.GROUND_Y + C.PLAYER_SIZE;
+  ctx.fillStyle = "#2d2d44";
+  ctx.fillRect(0, r(groundY * scaleY), w, h - r(groundY * scaleY));
+
+  ctx.fillStyle = "#f59e0b";
+  for (const obs of sharedState.obstacles) {
+    ctx.fillRect(r(obs.x * scaleX), r(obs.y * scaleY), r(obs.width * scaleX), r(obs.height * scaleY));
+  }
+
+  ctx.fillStyle = "#4ade80";
+  for (const player of sharedState.players) {
+    if (player.alive) {
+      ctx.fillRect(r(player.x * scaleX), r(player.y * scaleY), r(player.size * scaleX), r(player.size * scaleY));
+    }
+  }
+
+  const fontSize = Math.max(8, 16 * Math.min(scaleX, scaleY));
+  ctx.fillStyle = "#e0e0e0";
+  ctx.font = `${fontSize}px system-ui`;
+  ctx.fillText(`Score: ${Math.floor(sharedState.maxDistance)}`, 4, fontSize + 4);
+}

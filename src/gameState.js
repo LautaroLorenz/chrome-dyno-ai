@@ -126,19 +126,64 @@ export function getStateSnapshot(state) {
   };
 }
 
-function collide(player, obstacle) {
-  const pr = player.x + player.size;
-  const pl = player.x;
-  const pb = player.y + player.size;
-  const pt = player.y;
-  const ol = obstacle.x;
-  const or = obstacle.x + obstacle.width;
-  const ob = obstacle.y + obstacle.height;
-  const ot = obstacle.y;
-  return pr > ol && pl < or && pb > ot && pt < ob;
+/**
+ * Crea un jugador inicial para modo mundo compartido (entrenamiento).
+ * @returns {object} { x, y, velocityY, size, onGround, alive, distanceTraveled, timeSinceLastJump }
+ */
+export function createInitialPlayer() {
+  return {
+    x: C.PLAYER_X,
+    y: C.GROUND_Y,
+    velocityY: 0,
+    size: C.PLAYER_SIZE,
+    onGround: true,
+    alive: true,
+    distanceTraveled: 0,
+    timeSinceLastJump: 0,
+  };
 }
 
-function getNextObstacleInfo(player, obstacles) {
+/**
+ * Actualiza un jugador un frame en modo mundo compartido (obstáculos compartidos).
+ * Modifica el jugador in-place. Acumula distanceTraveled por frame vivo.
+ * @param {object} player - Objeto jugador (createInitialPlayer)
+ * @param {boolean} shouldJump - Si la IA decide saltar
+ * @param {Array} sharedObstacles - Obstáculos compartidos
+ * @returns {object} El mismo objeto player actualizado
+ */
+export function updatePlayer(player, shouldJump, sharedObstacles) {
+  if (!player.alive) return player;
+
+  if (shouldJump && player.onGround) {
+    player.velocityY = C.JUMP_FORCE;
+    player.onGround = false;
+    player.timeSinceLastJump = 0;
+  } else {
+    player.timeSinceLastJump = (player.timeSinceLastJump || 0) + 1;
+  }
+
+  player.velocityY += C.GRAVITY;
+  player.y += player.velocityY;
+  if (player.y >= C.GROUND_Y) {
+    player.y = C.GROUND_Y;
+    player.velocityY = 0;
+    player.onGround = true;
+  }
+
+  for (const obs of sharedObstacles) {
+    if (collide(player, obs)) {
+      player.alive = false;
+      return player;
+    }
+  }
+
+  // Misma escala que el score original: distancia = tiempo sobrevivido (SCORE_PER_FRAME por frame)
+  player.distanceTraveled += C.SCORE_PER_FRAME;
+  return player;
+}
+
+/** Expuesto para stateToInputs cuando se usa (player, sharedObstacles). */
+export function getNextObstacleInfo(player, obstacles) {
   const playerRight = player.x + player.size;
   let nearest = null;
   for (const obs of obstacles) {
@@ -153,4 +198,16 @@ function getNextObstacleInfo(player, obstacles) {
     nextHeight: nearest.height,
     nextGroundDist: C.GROUND_Y - nearest.y,
   };
+}
+
+function collide(player, obstacle) {
+  const pr = player.x + player.size;
+  const pl = player.x;
+  const pb = player.y + player.size;
+  const pt = player.y;
+  const ol = obstacle.x;
+  const or = obstacle.x + obstacle.width;
+  const ob = obstacle.y + obstacle.height;
+  const ot = obstacle.y;
+  return pr > ol && pl < or && pb > ot && pt < ob;
 }

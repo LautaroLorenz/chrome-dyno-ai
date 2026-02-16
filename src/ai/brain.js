@@ -3,6 +3,7 @@
  * Cada cerebro tiene configuración aleatoria inicial; se reproducen los mejores con mutación.
  */
 import * as C from "../constants.js";
+import { getNextObstacleInfo } from "../gameState.js";
 
 const INPUT_SIZE = 8;
 const HIDDEN_SIZE = 12;
@@ -100,38 +101,49 @@ export function createRandomBrain() {
 }
 
 /**
- * Construye el vector de entrada para la red a partir del estado del juego.
+ * Construye el vector de entrada para la red.
+ * Acepta (state) para humano/jugarAi o (player, sharedObstacles) para entrenamiento compartido.
  * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo, tiempo desde último salto, altura máxima alcanzable ]
  */
-export function stateToInputs(state) {
-  const dist = state.distanceToNextObstacle;
+export function stateToInputs(stateOrPlayer, sharedObstacles) {
+  const isShared = Array.isArray(sharedObstacles);
+  const player = isShared ? stateOrPlayer : stateOrPlayer.player;
+  const dist = isShared
+    ? getNextObstacleInfo(player, sharedObstacles).dist
+    : stateOrPlayer.distanceToNextObstacle;
+  const nextInfo = isShared
+    ? getNextObstacleInfo(player, sharedObstacles)
+    : {
+        nextSize: stateOrPlayer.nextObstacleSize,
+        nextHeight: stateOrPlayer.nextObstacleHeight,
+        nextGroundDist: stateOrPlayer.nextObstacleGroundDistance,
+      };
+  const timeSinceLastJump = isShared ? (stateOrPlayer.timeSinceLastJump || 0) : (stateOrPlayer.timeSinceLastJump || 0);
+
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
   const maxVelY = Math.abs(C.JUMP_FORCE);
-  const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / maxVelY));
-  const rawDist = C.GROUND_Y - state.player.y;
+  const velNorm = Math.max(-1, Math.min(1, player.velocityY / maxVelY));
+  const rawDist = C.GROUND_Y - player.y;
   const jumpHeightMax = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
   const playerGroundDist = Math.min(1, Math.max(0, rawDist / jumpHeightMax));
   const maxObstacleDim = 2 * C.PLAYER_SIZE;
-  const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / maxObstacleDim : 0;
-  const nextHeight =
-    state.nextObstacleHeight != null ? state.nextObstacleHeight / maxObstacleDim : 0;
+  const nextSize = nextInfo.nextSize != null ? nextInfo.nextSize / maxObstacleDim : 0;
+  const nextHeight = nextInfo.nextHeight != null ? nextInfo.nextHeight / maxObstacleDim : 0;
   const nextGroundDist =
-    state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / C.OBSTACLE_Y_OFFSET_MAX)) : 0;
-  
-  // Tiempo desde el último salto (normalizado, máximo ~300 frames = 5 segundos a 60fps)
-  const timeSinceJump = Math.min(1, (state.timeSinceLastJump || 0) / 300);
-  
-  // Altura máxima alcanzable desde la posición actual (según JUMP_FORCE y GRAVITY)
+    nextInfo.nextGroundDist != null ? Math.min(1, Math.max(0, nextInfo.nextGroundDist / C.OBSTACLE_Y_OFFSET_MAX)) : 0;
+
+  const timeSinceJump = Math.min(1, timeSinceLastJump / 300);
+
   let maxJumpHeight;
-  if (state.player.onGround) {
+  if (player.onGround) {
     maxJumpHeight = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
-  } else if (state.player.velocityY < 0) {
-    maxJumpHeight = (state.player.velocityY * state.player.velocityY) / (2 * C.GRAVITY);
+  } else if (player.velocityY < 0) {
+    maxJumpHeight = (player.velocityY * player.velocityY) / (2 * C.GRAVITY);
   } else {
     maxJumpHeight = 0;
   }
   const maxJumpHeightNorm = Math.min(1, Math.max(0, maxJumpHeight / jumpHeightMax));
-  
+
   return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist, timeSinceJump, maxJumpHeightNorm];
 }
 

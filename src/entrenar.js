@@ -1,9 +1,9 @@
 /**
- * Modo Entrenar AI: 20 jugadores con red de 3 capas, cada uno con configuración aleatoria.
- * Cada generación se reproducen con mutación en proporción al score para formar 20 nuevos.
+ * Modo Entrenar AI: N jugadores en un único mundo compartido, red de 3 capas.
+ * Cada generación se reproducen con mutación en proporción a la distancia recorrida.
  */
-import { createInitialState, updateState } from "./gameState.js";
-import { setCanvasSize, render } from "./render.js";
+import { createInitialPlayer, updatePlayer } from "./gameState.js";
+import { setCanvasSize, renderSharedWorld } from "./render.js";
 import {
   createRandomBrain,
   stateToInputs,
@@ -15,9 +15,7 @@ import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 import { getLevel, createLevelRunner } from "./levels/index.js";
 
-const NUM_PLAYERS = 200;
-const MINI_WIDTH = 200;
-const MINI_HEIGHT = 40;
+const NUM_PLAYERS = 1000;
 const SCORE_GOAL = 300;
 /** Renderizar solo cada N frames (lógica sigue a 60fps, gráficos más espaciados para rendimiento). */
 const RENDER_EVERY_N_FRAMES = 2;
@@ -25,48 +23,54 @@ const RENDER_EVERY_N_FRAMES = 2;
 const TRAINING_LEVEL = 1; // Las IA siempre entrenan en el nivel 1
 
 let brains = [];
-let states = [];
-let levelRunner = null; // Runner del nivel 1 para obstáculos compartidos
+/** Mundo compartido: { players, obstacles, maxDistance } */
+let sharedState = { players: [], obstacles: [], maxDistance: 0 };
+let levelRunner = null;
 let generation = 0;
 let rafId = null;
 let trainingStopped = false;
-let frameCount = 0; // Para renderizado diferido
+let frameCount = 0;
 
 function initPlayers() {
   brains = [];
-  states = [];
+  sharedState.players = [];
+  sharedState.obstacles = [];
+  sharedState.maxDistance = 0;
   levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL));
   for (let i = 0; i < NUM_PLAYERS; i++) {
     brains.push(createRandomBrain());
-    states.push(createInitialState());
+    sharedState.players.push(createInitialPlayer());
   }
 }
 
 function stepAll() {
-  // Avanzar el nivel 1 y obtener obstáculos compartidos para este frame
   const sharedObstacles = levelRunner.advance(C.OBSTACLE_SPEED);
+  sharedState.obstacles = sharedObstacles;
 
   let allDead = true;
   for (let i = 0; i < NUM_PLAYERS; i++) {
-    if (!states[i].alive) continue;
+    const player = sharedState.players[i];
+    if (!player.alive) continue;
     if (!brains[i]) {
       console.warn(`Brain ${i} is undefined, skipping`);
       continue;
     }
     allDead = false;
-    const inputs = stateToInputs(states[i]);
+    const inputs = stateToInputs(player, sharedObstacles);
     const jumpProb = forward(brains[i], inputs);
-    const shouldJump = jumpProb > 0.5;
-    // Pasar obstáculos compartidos a cada estado
-    updateState(states[i], shouldJump, sharedObstacles);
+    updatePlayer(player, jumpProb > 0.5, sharedObstacles);
   }
+  sharedState.maxDistance = Math.max(
+    0,
+    ...sharedState.players.map((p) => p.distanceTraveled),
+  );
   return allDead;
 }
 
 function updateRedNeuronalPanel(canvas, panelEl) {
   if (!canvas) return;
-  const aliveIndices = states
-    .map((s, i) => (s.alive ? i : -1))
+  const aliveIndices = sharedState.players
+    .map((p, i) => (p.alive ? i : -1))
     .filter((i) => i >= 0);
   if (aliveIndices.length === 0) {
     drawNeuralNetwork(canvas, null);
@@ -74,10 +78,10 @@ function updateRedNeuronalPanel(canvas, panelEl) {
     return;
   }
   const bestAlive = aliveIndices.reduce((best, i) =>
-    states[i].score > states[best].score ? i : best,
+    sharedState.players[i].distanceTraveled > sharedState.players[best].distanceTraveled ? i : best,
   );
   const idx = bestAlive;
-  const inputs = stateToInputs(states[idx]);
+  const inputs = stateToInputs(sharedState.players[idx], sharedState.obstacles);
   const debug = forwardDebug(brains[idx], inputs);
   debug._brain = brains[idx];
   drawNeuralNetwork(canvas, debug);
@@ -85,17 +89,15 @@ function updateRedNeuronalPanel(canvas, panelEl) {
     panelEl.textContent = `Jugador #${idx + 1} · Decisión: ${debug.decision ? "Saltar" : "No saltar"}`;
 }
 
-function renderAll(canvases, genEl, bestEl, redCanvas, redLegend) {
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    render(canvases[i], states[i]);
-  }
+function renderAll(gameCanvas, genEl, bestEl, aliveEl, redCanvas, redLegend) {
+  renderSharedWorld(gameCanvas, sharedState);
   updateRedNeuronalPanel(redCanvas, redLegend);
 }
 
 function getBestBrainIndex() {
   let best = 0;
   for (let i = 1; i < brains.length; i++) {
-    if (states[i].score > states[best].score) best = i;
+    if (sharedState.players[i].distanceTraveled > sharedState.players[best].distanceTraveled) best = i;
   }
   return best;
 }
@@ -104,7 +106,7 @@ function downloadModel() {
   if (brains.length === 0) return;
   const idx = getBestBrainIndex();
   const brain = brains[idx];
-  const score = states[idx].score;
+  const score = sharedState.players[idx].distanceTraveled;
   const config = {
     version: 1,
     generation,
@@ -127,25 +129,24 @@ function downloadModel() {
 }
 
 function runGeneration(
-  canvases,
+  gameCanvas,
   genEl,
   bestEl,
+  aliveEl,
   redCanvas,
   redLegend,
   btnDownload,
 ) {
   if (trainingStopped) return;
-  // Lógica del juego siempre a 60fps
   const allDead = stepAll();
-  
-  // Actualizar estadísticas cada frame (generación y mejor score)
-  const maxScore = states.reduce((m, s) => Math.max(m, s.score), 0);
+  const maxScore = sharedState.maxDistance;
+  const aliveCount = sharedState.players.filter((p) => p.alive).length;
   if (genEl) genEl.textContent = generation;
   if (bestEl) bestEl.textContent = Math.floor(maxScore);
-  
-  // Renderizar solo cada N frames para mejorar rendimiento
+  if (aliveEl) aliveEl.textContent = aliveCount;
+
   if (frameCount % RENDER_EVERY_N_FRAMES === 0) {
-    renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
+    renderAll(gameCanvas, genEl, bestEl, aliveEl, redCanvas, redLegend);
   }
   frameCount += 1;
 
@@ -161,19 +162,19 @@ function runGeneration(
   }
 
   if (allDead) {
-    const scores = states.map((s) => s.score);
+    const scores = sharedState.players.map((p) => p.distanceTraveled);
     brains = nextGeneration(brains, scores, NUM_PLAYERS);
     generation += 1;
-    frameCount = 0; // Reiniciar contador de frames
-    levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL)); // Reiniciar nivel 1
+    frameCount = 0;
+    levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL));
+    sharedState.players = [];
     for (let i = 0; i < NUM_PLAYERS; i++) {
-      states[i] = createInitialState();
+      sharedState.players.push(createInitialPlayer());
     }
-    // Renderizar inmediatamente al empezar nueva generación
-    renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
+    renderAll(gameCanvas, genEl, bestEl, aliveEl, redCanvas, redLegend);
   }
   rafId = requestAnimationFrame(() =>
-    runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload),
+    runGeneration(gameCanvas, genEl, bestEl, aliveEl, redCanvas, redLegend, btnDownload),
   );
 }
 
@@ -187,25 +188,19 @@ export function startEntrenar(container) {
   info.className = "entrenar-info";
   info.innerHTML = `
     <span>Generación: <strong id="entrenar-gen">0</strong></span>
-    <span>Mejor score: <strong id="entrenar-best">0</strong> / ${SCORE_GOAL}</span>
+    <span style="width: 164px; display: inline-block;">Mejor score: <strong id="entrenar-best">0</strong> / ${SCORE_GOAL}</span>
+    <span>Vivos: <strong id="entrenar-alive">0</strong> / ${NUM_PLAYERS}</span>
     <span id="entrenar-status" class="entrenar-status"></span>
   `;
   container.appendChild(info);
 
-  const grid = document.createElement("div");
-  grid.className = "entrenar-grid";
-  const canvases = [];
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    const wrap = document.createElement("div");
-    wrap.className = "entrenar-cell";
-    const canvas = document.createElement("canvas");
-    canvas.className = "entrenar-canvas";
-    setCanvasSize(canvas, MINI_WIDTH, MINI_HEIGHT);
-    wrap.appendChild(canvas);
-    grid.appendChild(wrap);
-    canvases.push(canvas);
-  }
-  container.appendChild(grid);
+  const gameWrap = document.createElement("div");
+  gameWrap.className = "entrenar-game-wrap";
+  const gameCanvas = document.createElement("canvas");
+  gameCanvas.className = "entrenar-canvas entrenar-canvas-single";
+  setCanvasSize(gameCanvas, C.WORLD_WIDTH, C.WORLD_HEIGHT);
+  gameWrap.appendChild(gameCanvas);
+  container.appendChild(gameWrap);
 
   const redSection = document.createElement("section");
   redSection.className = "red-neuronal";
@@ -243,7 +238,8 @@ export function startEntrenar(container) {
   initPlayers();
   const genEl = document.getElementById("entrenar-gen");
   const bestEl = document.getElementById("entrenar-best");
-  runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload);
+  const aliveEl = document.getElementById("entrenar-alive");
+  runGeneration(gameCanvas, genEl, bestEl, aliveEl, redCanvas, redLegend, btnDownload);
 
   return function stop() {
     if (rafId != null) cancelAnimationFrame(rafId);
