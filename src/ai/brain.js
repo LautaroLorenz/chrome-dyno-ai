@@ -109,18 +109,38 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   return b;
 }
 
+const NUM_OFFSPRING = 10;
+const MUTATE_RATE = 0.15;
+const MUTATE_AMOUNT = 0.25;
+
 /**
- * Dados 10 puntuaciones, toma los 4 mejores cerebros y genera 10 nuevos
- * reproduciendo (copiando + mutar) para la siguiente generación.
+ * Genera la siguiente generación: cada cerebro aporta hijos en proporción a su score.
+ * A mayor score, más descendientes (copias mutadas).
  */
 export function nextGeneration(brains, scores) {
-  const indexed = brains.map((b, i) => ({ brain: b, score: scores[i] }));
-  indexed.sort((a, b) => b.score - a.score);
-  const top4 = indexed.slice(0, 4).map((x) => x.brain);
+  const epsilon = 1e-6;
+  const total = scores.reduce((a, b) => a + b, 0) + epsilon;
+  const quota = scores.map((s) => ((s + epsilon) / total) * NUM_OFFSPRING);
+
+  const counts = quota.map((q) => Math.floor(q));
+  let sum = counts.reduce((a, b) => a + b, 0);
+  const remainder = quota.map((q, i) => ({ i, frac: q - Math.floor(q) }))
+    .sort((a, b) => b.frac - a.frac);
+  for (let k = 0; sum < NUM_OFFSPRING && k < remainder.length; k++) {
+    counts[remainder[k].i] += 1;
+    sum += 1;
+  }
+
   const next = [];
-  for (let i = 0; i < 10; i++) {
-    const parent = top4[i % 4];
-    next.push(mutateBrain(parent, 0.15, 0.25));
+  for (let i = 0; i < brains.length; i++) {
+    for (let j = 0; j < counts[i]; j++) {
+      next.push(mutateBrain(brains[i], MUTATE_RATE, MUTATE_AMOUNT));
+    }
+  }
+  while (next.length > NUM_OFFSPRING) next.pop();
+  while (next.length < NUM_OFFSPRING) {
+    const best = scores.indexOf(Math.max(...scores));
+    next.push(mutateBrain(brains[best], MUTATE_RATE, MUTATE_AMOUNT));
   }
   return next;
 }
