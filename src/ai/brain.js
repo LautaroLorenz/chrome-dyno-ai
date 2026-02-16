@@ -5,7 +5,7 @@
 import * as C from "../constants.js";
 import { getNextObstacleInfo } from "../gameState.js";
 
-const INPUT_SIZE = 8;
+const INPUT_SIZE = 7;
 const HIDDEN_SIZE = 12;
 const OUTPUT_SIZE = 1;
 
@@ -48,32 +48,24 @@ export function loadBrainFromConfig(config) {
   const b = config.brain;
   if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
   let W1 = b.W1.map((row) => row.slice());
-  // Migrar modelos antiguos: añadir columnas de pesos aleatorios según el tamaño
+  // Migrar modelos antiguos: 8 entradas → quitar columna Velocidad Y (índice 1); <7 → añadir columnas
   if (W1[0]) {
     const currentSize = W1[0].length;
-    if (currentSize === 4) {
-      // Migrar de 4 a 8 entradas: añadir 4 columnas
+    if (currentSize === 8) {
+      // Quitar entrada 2 (Velocidad Y)
+      for (let i = 0; i < W1.length; i++) W1[i].splice(1, 1);
+    } else if (currentSize === 4) {
       for (let i = 0; i < W1.length; i++) {
-        W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
       }
     } else if (currentSize === 5) {
-      // Migrar de 5 a 8 entradas: añadir 3 columnas
       for (let i = 0; i < W1.length; i++) {
-        W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
       }
     } else if (currentSize === 6) {
-      // Migrar de 6 a 8 entradas: añadir 2 columnas
-      for (let i = 0; i < W1.length; i++) {
-        W1[i].push((Math.random() - 0.5) * 2);
-        W1[i].push((Math.random() - 0.5) * 2);
-      }
-    } else if (currentSize === 7) {
-      // Migrar de 7 a 8 entradas: añadir 1 columna
       for (let i = 0; i < W1.length; i++) {
         W1[i].push((Math.random() - 0.5) * 2);
       }
@@ -89,7 +81,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (8) -> oculta (12) -> salida (1).
+ * Estructura: entrada (7) -> oculta (12) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -103,7 +95,7 @@ export function createRandomBrain() {
 /**
  * Construye el vector de entrada para la red.
  * Acepta (state) para humano/jugarAi o (player, sharedObstacles) para entrenamiento compartido.
- * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo, tiempo desde último salto, altura máxima alcanzable ]
+ * [ dist. obstáculo, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo, tiempo desde último salto, altura máxima alcanzable ]
  */
 export function stateToInputs(stateOrPlayer, sharedObstacles) {
   const isShared = Array.isArray(sharedObstacles);
@@ -123,8 +115,6 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
     : stateOrPlayer.timeSinceLastJump || 0;
 
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
-  const maxVelY = Math.abs(C.JUMP_FORCE);
-  const velNorm = Math.max(-1, Math.min(1, player.velocityY / maxVelY));
   const rawDist = C.GROUND_Y - player.y;
   const jumpHeightMax = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
   const playerGroundDist = Math.min(1, Math.max(0, rawDist / jumpHeightMax));
@@ -158,7 +148,6 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
 
   return [
     distNorm,
-    velNorm,
     playerGroundDist,
     nextSize,
     nextHeight,
@@ -277,7 +266,6 @@ export const BRAIN_HIDDEN_SIZE = HIDDEN_SIZE;
 
 export const INPUT_LABELS = [
   "Dist. al obstáculo (0-1)",
-  "Velocidad Y (norm)",
   "Dist. al suelo player (0-1)",
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",

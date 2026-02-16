@@ -5,13 +5,12 @@
 /** Etiquetas junto a cada nodo de entrada */
 const INPUT_LABELS_SHORT = [
   "1. Dist. obstáculo",
-  "2. Velocidad Y",
-  "3. Dist. suelo player",
-  "4. Ancho obst.",
-  "5. Altura obst.",
-  "6. Dist. suelo obst.",
-  "7. Tiempo último salto",
-  "8. Alt. máx. alcanzable",
+  "2. Dist. suelo player",
+  "3. Ancho obst.",
+  "4. Altura obst.",
+  "5. Dist. suelo obst.",
+  "6. Tiempo último salto",
+  "7. Alt. máx. alcanzable",
 ];
 
 const PADDING = 32;
