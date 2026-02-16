@@ -195,7 +195,7 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
 }
 
 const NUM_OFFSPRING = 20;
-const MUTATE_RATE = 0.05; // 5% - mutación baja
+const MUTATE_RATE = 0.1; // 10% - mutación baja
 const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
 
 /**
