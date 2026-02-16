@@ -13,6 +13,13 @@ function randomWeight() {
   return (Math.random() - 0.5) * 2;
 }
 
+/** Devuelve un valor aproximadamente N(0, 1) usando Box-Muller. */
+function randomGaussian() {
+  const u1 = 1 - Math.random();
+  const u2 = Math.random();
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
 function relu(x) {
   return x > 0 ? x : 0;
 }
@@ -166,27 +173,25 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   const b = cloneBrain(brain);
   for (let i = 0; i < b.W1.length; i++) {
     for (let j = 0; j < b.W1[i].length; j++) {
-      if (Math.random() < rate)
-        b.W1[i][j] += (Math.random() - 0.5) * 2 * amount;
+      if (Math.random() < rate) b.W1[i][j] += amount * randomGaussian();
     }
   }
   for (let i = 0; i < b.b1.length; i++) {
-    if (Math.random() < rate) b.b1[i] += (Math.random() - 0.5) * 2 * amount;
+    if (Math.random() < rate) b.b1[i] += amount * randomGaussian();
   }
   for (let i = 0; i < b.W2.length; i++) {
     for (let j = 0; j < b.W2[i].length; j++) {
-      if (Math.random() < rate)
-        b.W2[i][j] += (Math.random() - 0.5) * 2 * amount;
+      if (Math.random() < rate) b.W2[i][j] += amount * randomGaussian();
     }
   }
   for (let i = 0; i < b.b2.length; i++) {
-    if (Math.random() < rate) b.b2[i] += (Math.random() - 0.5) * 2 * amount;
+    if (Math.random() < rate) b.b2[i] += amount * randomGaussian();
   }
   return b;
 }
 
 const MUTATE_RATE = 0.05; // 5% - mutación baja para no romper estrategias
-const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
+const MUTATE_AMOUNT = 0.15; // sigma de mutación gaussiana (cambios pequeños más frecuentes)
 
 const TOP_PERCENT = 0.1; // Solo el 10% que llegó más lejos se reproduce
 /** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchos más hijos. */
