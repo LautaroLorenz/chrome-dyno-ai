@@ -71,10 +71,20 @@ export function loadBrainFromConfig(config) {
       }
     }
   }
+  // Recortar capa oculta si el modelo tiene más neuronas que entradas (ej. antiguo 12 → 7)
+  if (W1.length > HIDDEN_SIZE) {
+    W1 = W1.slice(0, HIDDEN_SIZE);
+  }
+  let b1 = b.b1.slice();
+  if (b1.length > HIDDEN_SIZE) b1 = b1.slice(0, HIDDEN_SIZE);
+  let W2 = b.W2.map((row) => row.slice());
+  if (W2[0] && W2[0].length > HIDDEN_SIZE) {
+    W2 = W2.map((row) => row.slice(0, HIDDEN_SIZE));
+  }
   return {
     W1,
-    b1: b.b1.slice(),
-    W2: b.W2.map((row) => row.slice()),
+    b1,
+    W2,
     b2: b.b2.slice(),
   };
 }
