@@ -15,12 +15,12 @@ import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 import { getLevel, createLevelRunner } from "./levels/index.js";
 
-const NUM_PLAYERS = 100;
+const NUM_PLAYERS = 300;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 300;
 /** Renderizar solo cada N frames (lógica sigue a 60fps, gráficos más espaciados para rendimiento). */
-const RENDER_EVERY_N_FRAMES = 2;
+const RENDER_EVERY_N_FRAMES = 3;
 
 const TRAINING_LEVEL = 1; // Las IA siempre entrenan en el nivel 1
 
