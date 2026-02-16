@@ -20,8 +20,10 @@ function randomGaussian() {
   return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 }
 
-function relu(x) {
-  return x > 0 ? x : 0;
+const LEAKY_RELU_ALPHA = 0.01;
+
+function leakyRelu(x) {
+  return x > 0 ? x : LEAKY_RELU_ALPHA * x;
 }
 
 function sigmoid(x) {
@@ -151,7 +153,7 @@ export function forward(brain, inputs) {
   for (let i = 0; i < HIDDEN_SIZE; i++) {
     let sum = brain.b1[i];
     for (let j = 0; j < INPUT_SIZE; j++) sum += brain.W1[i][j] * inputs[j];
-    hidden[i] = relu(sum);
+    hidden[i] = leakyRelu(sum);
   }
   let out = brain.b2[0];
   for (let i = 0; i < HIDDEN_SIZE; i++) out += brain.W2[0][i] * hidden[i];
@@ -198,6 +200,8 @@ const TOP_PERCENT = 0.1; // Solo el 10% que llegó más lejos se reproduce
 const SELECTION_WEIGHT_POWER = 3;
 /** Cuántos mejores pasan sin mutar a la siguiente generación (elitismo). */
 const ELITISM_COUNT = 3;
+/** Probabilidad de que un hijo sea copia exacta del padre (sin mutar). Preserva más genotipos buenos. */
+const CLONE_PROBABILITY = 0.08;
 
 /**
  * Genera la siguiente generación: elitismo (mejores sin mutar) + top 20% con ruleta ponderada y mutación suave.
@@ -237,7 +241,12 @@ export function nextGeneration(brains, scores, numOffspring) {
       parentPos = i;
     }
     const parentIdx = topIndices[parentPos];
-    next.push(mutateBrain(brains[parentIdx], MUTATE_RATE, MUTATE_AMOUNT));
+    const parent = brains[parentIdx];
+    if (Math.random() < CLONE_PROBABILITY) {
+      next.push(cloneBrain(parent));
+    } else {
+      next.push(mutateBrain(parent, MUTATE_RATE, MUTATE_AMOUNT));
+    }
   }
   return next;
 }
@@ -268,7 +277,7 @@ export function forwardDebug(brain, inputs) {
     let sum = brain.b1[i];
     for (let j = 0; j < INPUT_SIZE; j++) sum += brain.W1[i][j] * inputs[j];
     hiddenPre[i] = sum;
-    hiddenPost[i] = relu(sum);
+    hiddenPost[i] = leakyRelu(sum);
   }
   let outPre = brain.b2[0];
   for (let i = 0; i < HIDDEN_SIZE; i++)
