@@ -6,7 +6,7 @@ import * as C from "../constants.js";
 import { getNextObstacleInfo } from "../gameState.js";
 
 const INPUT_SIZE = 7;
-const HIDDEN_SIZE = 12;
+const HIDDEN_SIZE = INPUT_SIZE; // Misma cantidad de neuronas que entradas
 const OUTPUT_SIZE = 1;
 
 function randomWeight() {
@@ -81,7 +81,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (7) -> oculta (12) -> salida (1).
+ * Estructura: entrada (7) -> oculta (7) -> salida (1).
  */
 export function createRandomBrain() {
   return {
