@@ -31,7 +31,7 @@ export function render(canvas, state) {
 
   ctx.fillStyle = "#f59e0b";
   for (const obs of obstacles) {
-    ctx.fillRect(r(obs.x * scaleX), r(obs.y * scaleY), r(obs.size * scaleX), r(obs.size * scaleY));
+    ctx.fillRect(r(obs.x * scaleX), r(obs.y * scaleY), r(obs.width * scaleX), r(obs.height * scaleY));
   }
 
   const fontSize = Math.max(8, 16 * Math.min(scaleX, scaleY));

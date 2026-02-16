@@ -7,7 +7,8 @@ const INPUT_LABELS_SHORT = [
   "1. Dist. obstáculo",
   "2. Velocidad Y",
   "3. En suelo",
-  "4. Tam. obstáculo",
+  "4. Ancho obst.",
+  "5. Altura obst.",
 ];
 
 const PADDING = 32;

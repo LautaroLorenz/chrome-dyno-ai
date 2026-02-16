@@ -3,7 +3,7 @@
  * Cada cerebro tiene configuración aleatoria inicial; se reproducen los mejores con mutación.
  */
 
-const INPUT_SIZE = 4;
+const INPUT_SIZE = 5;
 const HIDDEN_SIZE = 12;
 const OUTPUT_SIZE = 1;
 
@@ -45,8 +45,15 @@ export function loadBrainFromConfig(config) {
   if (!config || !config.brain) return null;
   const b = config.brain;
   if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
+  let W1 = b.W1.map((row) => row.slice());
+  // Migrar modelos antiguos (4 entradas) a 5 entradas: añadir columna de pesos aleatorios
+  if (W1[0] && W1[0].length === 4) {
+    for (let i = 0; i < W1.length; i++) {
+      W1[i].push((Math.random() - 0.5) * 2);
+    }
+  }
   return {
-    W1: b.W1.map((row) => row.slice()),
+    W1,
     b1: b.b1.slice(),
     W2: b.W2.map((row) => row.slice()),
     b2: b.b2.slice(),
@@ -55,7 +62,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (4) -> oculta (12) -> salida (1).
+ * Estructura: entrada (5) -> oculta (12) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -68,15 +75,17 @@ export function createRandomBrain() {
 
 /**
  * Construye el vector de entrada para la red a partir del estado del juego.
- * [ distancia al obstáculo (0-1), velocidadY normalizada, onGround (0/1), tamaño próximo obstáculo (0-1) ]
+ * [ dist. obstáculo, vel. Y, onGround, tam. obstáculo, alt. obstáculo ]
  */
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
   const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / 15));
   const onGround = state.player.onGround ? 1 : 0;
-  const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / 800 : 0;
-  return [distNorm, velNorm, onGround, nextSize];
+  const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / 80 : 0;
+  const nextHeight =
+    state.nextObstacleHeight != null ? state.nextObstacleHeight / 80 : 0;
+  return [distNorm, velNorm, onGround, nextSize, nextHeight];
 }
 
 /**
@@ -133,17 +142,30 @@ const MUTATE_AMOUNT = 0.25;
 /**
  * Genera la siguiente generación: cada cerebro aporta hijos en proporción a su score.
  * A mayor score, más descendientes (copias mutadas).
+ * @param {object[]} brains - Array de cerebros de la generación actual
+ * @param {number[]} scores - Array de scores correspondientes a cada cerebro
+ * @param {number} numOffspring - Número de descendientes a generar (por defecto NUM_OFFSPRING)
+ * @returns {object[]} Array de nuevos cerebros para la siguiente generación
  */
-export function nextGeneration(brains, scores) {
+export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
+  if (brains.length === 0 || scores.length === 0) {
+    // Si no hay cerebros, crear cerebros aleatorios
+    const next = [];
+    for (let i = 0; i < numOffspring; i++) {
+      next.push(createRandomBrain());
+    }
+    return next;
+  }
+
   const epsilon = 1e-6;
   const total = scores.reduce((a, b) => a + b, 0) + epsilon;
-  const quota = scores.map((s) => ((s + epsilon) / total) * NUM_OFFSPRING);
+  const quota = scores.map((s) => ((s + epsilon) / total) * numOffspring);
 
   const counts = quota.map((q) => Math.floor(q));
   let sum = counts.reduce((a, b) => a + b, 0);
   const remainder = quota.map((q, i) => ({ i, frac: q - Math.floor(q) }))
     .sort((a, b) => b.frac - a.frac);
-  for (let k = 0; sum < NUM_OFFSPRING && k < remainder.length; k++) {
+  for (let k = 0; sum < numOffspring && k < remainder.length; k++) {
     counts[remainder[k].i] += 1;
     sum += 1;
   }
@@ -154,10 +176,15 @@ export function nextGeneration(brains, scores) {
       next.push(mutateBrain(brains[i], MUTATE_RATE, MUTATE_AMOUNT));
     }
   }
-  while (next.length > NUM_OFFSPRING) next.pop();
-  while (next.length < NUM_OFFSPRING) {
+  while (next.length > numOffspring) next.pop();
+  while (next.length < numOffspring) {
     const best = scores.indexOf(Math.max(...scores));
-    next.push(mutateBrain(brains[best], MUTATE_RATE, MUTATE_AMOUNT));
+    if (best >= 0 && brains[best]) {
+      next.push(mutateBrain(brains[best], MUTATE_RATE, MUTATE_AMOUNT));
+    } else {
+      // Fallback: crear cerebro aleatorio si no hay mejor disponible
+      next.push(createRandomBrain());
+    }
   }
   return next;
 }
@@ -169,7 +196,8 @@ export const INPUT_LABELS = [
   "Dist. al obstáculo (0-1)",
   "Velocidad Y (norm)",
   "En suelo (0/1)",
-  "Tamaño próximo obst. (0-1)",
+  "Ancho próximo obst. (0-1)",
+  "Altura próximo obst. (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 

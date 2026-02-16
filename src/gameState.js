@@ -22,6 +22,8 @@ export function createInitialState() {
     distanceToNextObstacle: null,
     /** Ancho del próximo obstáculo (para IA). */
     nextObstacleSize: null,
+    /** Altura del próximo obstáculo (para IA). */
+    nextObstacleHeight: null,
   };
 }
 
@@ -50,11 +52,11 @@ export function updateState(state, playerJumps) {
   for (const obs of obstacles) {
     obs.x -= speed;
   }
-  state.obstacles = obstacles.filter((obs) => obs.x + C.OBSTACLE_SIZE > 0);
+  state.obstacles = obstacles.filter((obs) => obs.x + obs.width > 0);
 
   const rightmost =
     state.obstacles.length > 0
-      ? Math.max(...state.obstacles.map((o) => o.x + C.OBSTACLE_SIZE))
+      ? Math.max(...state.obstacles.map((o) => o.x + o.width))
       : 0;
   const minGap = C.OBSTACLE_SPAWN_GAP_MIN;
   const maxGap = C.OBSTACLE_SPAWN_GAP_MAX;
@@ -63,10 +65,19 @@ export function updateState(state, playerJumps) {
     state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - minGap;
   if (shouldSpawn) {
     const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + gap;
+    const width =
+      C.OBSTACLE_MIN_WIDTH +
+      Math.random() * (C.OBSTACLE_MAX_WIDTH - C.OBSTACLE_MIN_WIDTH);
+    const height =
+      C.OBSTACLE_MIN_HEIGHT +
+      Math.random() * (C.OBSTACLE_MAX_HEIGHT - C.OBSTACLE_MIN_HEIGHT);
+    const yOffset = Math.random() * C.OBSTACLE_Y_OFFSET_MAX;
+    const y = C.GROUND_Y - yOffset;
     state.obstacles.push({
       x: spawnX,
-      y: C.GROUND_Y,
-      size: C.OBSTACLE_SIZE,
+      y: Math.round(y),
+      width: Math.round(width),
+      height: Math.round(height),
     });
   }
 
@@ -78,9 +89,10 @@ export function updateState(state, playerJumps) {
   }
 
   state.score += C.SCORE_PER_FRAME;
-  const { dist, nextSize } = getNextObstacleInfo(player, state.obstacles);
+  const { dist, nextSize, nextHeight } = getNextObstacleInfo(player, state.obstacles);
   state.distanceToNextObstacle = dist;
   state.nextObstacleSize = nextSize;
+  state.nextObstacleHeight = nextHeight;
   return state;
 }
 
@@ -93,6 +105,7 @@ export function getStateSnapshot(state) {
     speed: state.speed,
     distanceToNextObstacle: state.distanceToNextObstacle,
     nextObstacleSize: state.nextObstacleSize,
+    nextObstacleHeight: state.nextObstacleHeight,
   };
 }
 
@@ -102,8 +115,8 @@ function collide(player, obstacle) {
   const pb = player.y + player.size;
   const pt = player.y;
   const ol = obstacle.x;
-  const or = obstacle.x + obstacle.size;
-  const ob = obstacle.y + obstacle.size;
+  const or = obstacle.x + obstacle.width;
+  const ob = obstacle.y + obstacle.height;
   const ot = obstacle.y;
   return pr > ol && pl < or && pb > ot && pt < ob;
 }
@@ -116,6 +129,10 @@ function getNextObstacleInfo(player, obstacles) {
       nearest = obs;
     }
   }
-  if (nearest == null) return { dist: null, nextSize: null };
-  return { dist: nearest.x - playerRight, nextSize: nearest.size };
+  if (nearest == null) return { dist: null, nextSize: null, nextHeight: null };
+  return {
+    dist: nearest.x - playerRight,
+    nextSize: nearest.width,
+    nextHeight: nearest.height,
+  };
 }

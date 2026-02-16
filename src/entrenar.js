@@ -14,7 +14,7 @@ import {
 import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 
-const NUM_PLAYERS = 20;
+const NUM_PLAYERS = 100;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 100;
@@ -38,6 +38,10 @@ function stepAll() {
   let allDead = true;
   for (let i = 0; i < NUM_PLAYERS; i++) {
     if (!states[i].alive) continue;
+    if (!brains[i]) {
+      console.warn(`Brain ${i} is undefined, skipping`);
+      continue;
+    }
     allDead = false;
     const inputs = stateToInputs(states[i]);
     const jumpProb = forward(brains[i], inputs);
@@ -127,7 +131,7 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownloa
 
   if (allDead) {
     const scores = states.map((s) => s.score);
-    brains = nextGeneration(brains, scores);
+    brains = nextGeneration(brains, scores, NUM_PLAYERS);
     generation += 1;
     for (let i = 0; i < NUM_PLAYERS; i++) {
       states[i] = createInitialState();
