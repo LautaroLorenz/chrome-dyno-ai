@@ -15,7 +15,7 @@ import { drawNeuralNetwork } from "./ai/neuralView.js";
 import * as C from "./constants.js";
 import { getLevel, createLevelRunner } from "./levels/index.js";
 
-const NUM_PLAYERS = 200;
+const NUM_PLAYERS = 100;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
 const SCORE_GOAL = 300;
@@ -42,7 +42,7 @@ function initPlayers() {
 function stepAll() {
   // Avanzar el nivel 1 y obtener obstáculos compartidos para este frame
   const sharedObstacles = levelRunner.advance(C.OBSTACLE_SPEED);
-  
+
   let allDead = true;
   for (let i = 0; i < NUM_PLAYERS; i++) {
     if (!states[i].alive) continue;
@@ -71,14 +71,15 @@ function updateRedNeuronalPanel(canvas, panelEl) {
     return;
   }
   const bestAlive = aliveIndices.reduce((best, i) =>
-    states[i].score > states[best].score ? i : best
+    states[i].score > states[best].score ? i : best,
   );
   const idx = bestAlive;
   const inputs = stateToInputs(states[idx]);
   const debug = forwardDebug(brains[idx], inputs);
   debug._brain = brains[idx];
   drawNeuralNetwork(canvas, debug);
-  if (panelEl) panelEl.textContent = `Jugador #${idx + 1} · Decisión: ${debug.decision ? "Saltar" : "No saltar"}`;
+  if (panelEl)
+    panelEl.textContent = `Jugador #${idx + 1} · Decisión: ${debug.decision ? "Saltar" : "No saltar"}`;
 }
 
 function renderAll(canvases, genEl, bestEl, redCanvas, redLegend) {
@@ -115,7 +116,9 @@ function downloadModel() {
       b2: brain.b2,
     },
   };
-  const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(config, null, 2)], {
+    type: "application/json",
+  });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `brain-config-gen${generation}-score${Math.floor(score)}.json`;
@@ -123,7 +126,14 @@ function downloadModel() {
   URL.revokeObjectURL(a.href);
 }
 
-function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload) {
+function runGeneration(
+  canvases,
+  genEl,
+  bestEl,
+  redCanvas,
+  redLegend,
+  btnDownload,
+) {
   if (trainingStopped) return;
   const allDead = stepAll();
   renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
@@ -133,7 +143,9 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownloa
     trainingStopped = true;
     if (genEl) genEl.textContent = generation + " ✓";
     const statusEl = document.getElementById("entrenar-status");
-    if (statusEl) statusEl.textContent = "Entrenamiento completado. Descarga el modelo abajo.";
+    if (statusEl)
+      statusEl.textContent =
+        "Entrenamiento completado. Descarga el modelo abajo.";
     if (btnDownload) btnDownload.disabled = false;
     return;
   }
@@ -147,7 +159,9 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownloa
       states[i] = createInitialState();
     }
   }
-  rafId = requestAnimationFrame(() => runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload));
+  rafId = requestAnimationFrame(() =>
+    runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload),
+  );
 }
 
 export function startEntrenar(container) {
