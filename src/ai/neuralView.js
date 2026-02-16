@@ -6,7 +6,7 @@
 const INPUT_LABELS_SHORT = [
   "1. Dist. obstáculo",
   "2. Velocidad Y",
-  "3. En suelo",
+  "3. Dist. suelo player",
   "4. Ancho obst.",
   "5. Altura obst.",
   "6. Dist. suelo obst.",

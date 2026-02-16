@@ -2,6 +2,7 @@
  * Red neuronal de 3 capas (entrada, oculta, salida) para controlar al jugador.
  * Cada cerebro tiene configuración aleatoria inicial; se reproducen los mejores con mutación.
  */
+import * as C from "../constants.js";
 
 const INPUT_SIZE = 6;
 const HIDDEN_SIZE = 12;
@@ -85,19 +86,25 @@ export function createRandomBrain() {
 
 /**
  * Construye el vector de entrada para la red a partir del estado del juego.
- * [ dist. obstáculo, vel. Y, onGround, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo ]
+ * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo ]
  */
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
   const velNorm = Math.max(-1, Math.min(1, state.player.velocityY / 15));
-  const onGround = state.player.onGround ? 1 : 0;
+  // Distancia al suelo del jugador: cuando salta, player.y disminuye (porque JUMP_FORCE es negativo)
+  // Cuando está en el suelo: player.y = GROUND_Y, distancia = 0
+  // Cuando salta: player.y < GROUND_Y, entonces GROUND_Y - player.y > 0
+  // Normalizamos dividiendo por 80px (altura máxima aproximada del salto)
+  // Usamos Math.max para asegurar que nunca sea negativo (si player.y > GROUND_Y por algún error)
+  const rawDist = C.GROUND_Y - state.player.y;
+  const playerGroundDist = Math.min(1, Math.max(0, rawDist / 80));
   const nextSize = state.nextObstacleSize != null ? state.nextObstacleSize / 80 : 0;
   const nextHeight =
     state.nextObstacleHeight != null ? state.nextObstacleHeight / 80 : 0;
   const nextGroundDist =
     state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / 80)) : 0;
-  return [distNorm, velNorm, onGround, nextSize, nextHeight, nextGroundDist];
+  return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist];
 }
 
 /**
@@ -207,7 +214,7 @@ export const BRAIN_HIDDEN_SIZE = HIDDEN_SIZE;
 export const INPUT_LABELS = [
   "Dist. al obstáculo (0-1)",
   "Velocidad Y (norm)",
-  "En suelo (0/1)",
+  "Dist. al suelo player (0-1)",
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
   "Dist. al suelo próximo obst. (0-1)",
