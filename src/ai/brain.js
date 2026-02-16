@@ -292,7 +292,7 @@ export const INPUT_LABELS = [
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
   "Dist. al suelo próximo obst. (0-1)",
-  "Dist. player abajo → obst. arriba (0-1)",
+  "Gap vertical (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 
