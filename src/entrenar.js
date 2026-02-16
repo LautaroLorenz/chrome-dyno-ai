@@ -64,7 +64,7 @@ function updateRedNeuronalPanel(canvas, panelEl) {
   const inputs = stateToInputs(states[idx]);
   const debug = forwardDebug(brains[idx], inputs);
   debug._brain = brains[idx];
-  drawNeuralNetwork(canvas, debug, idx, states[idx].score, generation);
+  drawNeuralNetwork(canvas, debug);
   if (panelEl) panelEl.textContent = `Jugador #${idx + 1} · Decisión: ${debug.decision ? "Saltar" : "No saltar"}`;
 }
 
@@ -173,8 +173,8 @@ export function startEntrenar(container) {
   redSection.appendChild(redTitle);
   const redCanvas = document.createElement("canvas");
   redCanvas.className = "red-neuronal-canvas";
-  redCanvas.width = 420;
-  redCanvas.height = 220;
+  redCanvas.width = 540;
+  redCanvas.height = 300;
   redSection.appendChild(redCanvas);
   const redLegend = document.createElement("p");
   redLegend.className = "red-neuronal-legend";

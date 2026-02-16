@@ -10,8 +10,8 @@ const INPUT_LABELS_SHORT = [
   "4. Tam. obstáculo",
 ];
 
-const PADDING = 24;
-const NODE_RADIUS = 12;
+const PADDING = 32;
+const NODE_RADIUS = 14;
 const MAX_LINE_WIDTH = 2;
 
 /**
@@ -22,7 +22,7 @@ const MAX_LINE_WIDTH = 2;
  * @param {number} score
  * @param {number} gen
  */
-export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
+export function drawNeuralNetwork(canvas, debug) {
   const ctx = canvas.getContext("2d");
   const w = canvas.width;
   const h = canvas.height;
@@ -47,14 +47,14 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
   ];
 
   const cols = 3;
-  const usableW = w - 2 * PADDING - 100;
-  const usableH = h - 2 * PADDING - 28;
+  const usableW = w - 2 * PADDING - 120;
+  const usableH = h - 2 * PADDING - 40;
   const positions = [];
   for (let col = 0; col < cols; col++) {
     const layer = layers[col];
     const x = PADDING + 50 + (col / (cols - 1)) * usableW;
     const n = layer.nodes;
-    const minStep = col === 0 ? 32 : 0;
+    const minStep = col === 0 ? 38 : 0;
     const stepY = n > 1 ? Math.max(usableH / (n - 1), minStep) : 0;
     const startY = PADDING + 14 + (n > 1 ? 0 : usableH / 2);
     const rowPos = [];
@@ -113,14 +113,14 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
 
       const text = typeof val === "number" ? val.toFixed(2) : String(val);
       ctx.fillStyle = "#fff";
-      ctx.font = "10px system-ui";
+      ctx.font = "11px system-ui";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(text, x, y);
 
       if (layer.labels && layer.labels[row]) {
         ctx.fillStyle = "#cbd5e1";
-        ctx.font = "9px system-ui";
+        ctx.font = "10px system-ui";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         const labelY = y + NODE_RADIUS + 4;
@@ -129,10 +129,4 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
     }
   }
 
-  if (playerIndex != null && score != null && gen != null) {
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px system-ui";
-    ctx.textAlign = "left";
-    ctx.fillText(`Jugador #${playerIndex + 1} · Score: ${Math.floor(score)} · Gen: ${gen}`, 8, h - 6);
-  }
 }

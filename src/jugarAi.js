@@ -25,7 +25,7 @@ function runGameLoop(canvas, neuralCanvas, legendEl) {
 
   const debug = forwardDebug(brain, inputs);
   debug._brain = brain;
-  drawNeuralNetwork(neuralCanvas, debug, 0, state.score, configMeta?.generation ?? 0);
+  drawNeuralNetwork(neuralCanvas, debug);
   if (legendEl) {
     legendEl.textContent = `Score: ${Math.floor(state.score)} · Decisión: ${shouldJump ? "Saltar" : "No saltar"}`;
   }
@@ -69,8 +69,8 @@ export function startJugarAi(container) {
   redSection.appendChild(redTitle);
   const neuralCanvas = document.createElement("canvas");
   neuralCanvas.className = "red-neuronal-canvas";
-  neuralCanvas.width = 420;
-  neuralCanvas.height = 220;
+  neuralCanvas.width = 540;
+  neuralCanvas.height = 300;
   redSection.appendChild(neuralCanvas);
   const legendEl = document.createElement("p");
   legendEl.className = "red-neuronal-legend";
