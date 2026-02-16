@@ -1,9 +1,0 @@
-{
-  "name": "chrome-dyno-ai",
-  "version": "1.0.0",
-  "description": "Juego del cuadrado que salta triángulos con IA que aprende",
-  "type": "module",
-  "dependencies": {
-    "@tensorflow/tfjs": "^4.22.0"
-  }
-}
