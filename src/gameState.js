@@ -33,9 +33,12 @@ export function createInitialState() {
 
 /**
  * Actualiza el estado un frame. Recibe si el jugador pidió salto (Space).
- * Retorna el mismo objeto state actualizado.
+ * @param {object} state - Estado del juego
+ * @param {boolean} playerJumps - Si el jugador quiere saltar
+ * @param {Array} sharedObstacles - Obstáculos compartidos (opcional, para modo entrenamiento)
+ * @returns {object} El mismo objeto state actualizado
  */
-export function updateState(state, playerJumps) {
+export function updateState(state, playerJumps, sharedObstacles = null) {
   if (!state.alive) return state;
 
   const { player, obstacles, speed } = state;
@@ -56,36 +59,43 @@ export function updateState(state, playerJumps) {
     player.onGround = true;
   }
 
-  for (const obs of obstacles) {
-    obs.x -= speed;
-  }
-  state.obstacles = obstacles.filter((obs) => obs.x + obs.width > 0);
+  // Si hay obstáculos compartidos, usarlos; si no, generar propios
+  if (sharedObstacles !== null) {
+    // Copiar obstáculos compartidos (crear copias para evitar mutaciones)
+    state.obstacles = sharedObstacles.map(obs => ({ ...obs }));
+  } else {
+    // Generar obstáculos propios (modo normal)
+    for (const obs of obstacles) {
+      obs.x -= speed;
+    }
+    state.obstacles = obstacles.filter((obs) => obs.x + obs.width > 0);
 
-  const rightmost =
-    state.obstacles.length > 0
-      ? Math.max(...state.obstacles.map((o) => o.x + o.width))
-      : 0;
-  const minGap = C.OBSTACLE_SPAWN_GAP_MIN;
-  const maxGap = C.OBSTACLE_SPAWN_GAP_MAX;
-  const gap = minGap + Math.random() * (maxGap - minGap);
-  const shouldSpawn =
-    state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - minGap;
-  if (shouldSpawn) {
-    const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + gap;
-    const width =
-      C.OBSTACLE_MIN_WIDTH +
-      Math.random() * (C.OBSTACLE_MAX_WIDTH - C.OBSTACLE_MIN_WIDTH);
-    const height =
-      C.OBSTACLE_MIN_HEIGHT +
-      Math.random() * (C.OBSTACLE_MAX_HEIGHT - C.OBSTACLE_MIN_HEIGHT);
-    const yOffset = Math.random() * C.OBSTACLE_Y_OFFSET_MAX;
-    const y = C.GROUND_Y - yOffset;
-    state.obstacles.push({
-      x: spawnX,
-      y: Math.round(y),
-      width: Math.round(width),
-      height: Math.round(height),
-    });
+    const rightmost =
+      state.obstacles.length > 0
+        ? Math.max(...state.obstacles.map((o) => o.x + o.width))
+        : 0;
+    const minGap = C.OBSTACLE_SPAWN_GAP_MIN;
+    const maxGap = C.OBSTACLE_SPAWN_GAP_MAX;
+    const gap = minGap + Math.random() * (maxGap - minGap);
+    const shouldSpawn =
+      state.obstacles.length === 0 || rightmost < C.WORLD_WIDTH - minGap;
+    if (shouldSpawn) {
+      const spawnX = state.obstacles.length === 0 ? C.OBSTACLE_BASE_X : rightmost + gap;
+      const width =
+        C.OBSTACLE_MIN_WIDTH +
+        Math.random() * (C.OBSTACLE_MAX_WIDTH - C.OBSTACLE_MIN_WIDTH);
+      const height =
+        C.OBSTACLE_MIN_HEIGHT +
+        Math.random() * (C.OBSTACLE_MAX_HEIGHT - C.OBSTACLE_MIN_HEIGHT);
+      const yOffset = Math.random() * C.OBSTACLE_Y_OFFSET_MAX;
+      const y = C.GROUND_Y - yOffset;
+      state.obstacles.push({
+        x: spawnX,
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height),
+      });
+    }
   }
 
   for (const obs of state.obstacles) {

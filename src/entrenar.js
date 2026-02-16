@@ -21,6 +21,7 @@ const SCORE_GOAL = 300;
 
 let brains = [];
 let states = [];
+let masterState = null; // Estado maestro para generar obstáculos compartidos
 let generation = 0;
 let rafId = null;
 let trainingStopped = false;
@@ -28,6 +29,7 @@ let trainingStopped = false;
 function initPlayers() {
   brains = [];
   states = [];
+  masterState = createInitialState(); // Estado maestro para obstáculos compartidos
   for (let i = 0; i < NUM_PLAYERS; i++) {
     brains.push(createRandomBrain());
     states.push(createInitialState());
@@ -35,6 +37,13 @@ function initPlayers() {
 }
 
 function stepAll() {
+  // Primero actualizar el estado maestro para generar obstáculos compartidos
+  // El estado maestro nunca salta (playerJumps = false), solo genera obstáculos
+  updateState(masterState, false);
+  
+  // Copiar obstáculos del estado maestro a todos los estados
+  const sharedObstacles = masterState.obstacles.map(obs => ({ ...obs }));
+  
   let allDead = true;
   for (let i = 0; i < NUM_PLAYERS; i++) {
     if (!states[i].alive) continue;
@@ -46,7 +55,8 @@ function stepAll() {
     const inputs = stateToInputs(states[i]);
     const jumpProb = forward(brains[i], inputs);
     const shouldJump = jumpProb > 0.5;
-    updateState(states[i], shouldJump);
+    // Pasar obstáculos compartidos a cada estado
+    updateState(states[i], shouldJump, sharedObstacles);
   }
   return allDead;
 }
@@ -133,6 +143,7 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownloa
     const scores = states.map((s) => s.score);
     brains = nextGeneration(brains, scores, NUM_PLAYERS);
     generation += 1;
+    masterState = createInitialState(); // Reiniciar estado maestro
     for (let i = 0; i < NUM_PLAYERS; i++) {
       states[i] = createInitialState();
     }
