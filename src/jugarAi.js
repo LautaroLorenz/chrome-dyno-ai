@@ -53,6 +53,20 @@ export function startJugarAi(container) {
   `;
   container.appendChild(uploadSection);
 
+  const navBtns = document.createElement("div");
+  navBtns.className = "entrenar-nav-btns";
+  const backLink = document.createElement("a");
+  backLink.href = "index.html";
+  backLink.className = "btn-back";
+  backLink.textContent = "← Volver al menú";
+  const entrenarLink = document.createElement("a");
+  entrenarLink.href = "entrenar.html";
+  entrenarLink.className = "btn-back";
+  entrenarLink.textContent = "Entrenar AI";
+  navBtns.appendChild(backLink);
+  navBtns.appendChild(entrenarLink);
+  container.appendChild(navBtns);
+
   const gameWrap = document.createElement("div");
   gameWrap.className = "jugar-ai-game";
   gameWrap.style.display = "none";
@@ -76,12 +90,6 @@ export function startJugarAi(container) {
   legendEl.className = "red-neuronal-legend";
   redSection.appendChild(legendEl);
   gameWrap.appendChild(redSection);
-
-  const backLink = document.createElement("a");
-  backLink.href = "index.html";
-  backLink.className = "btn-back";
-  backLink.textContent = "← Volver al menú";
-  gameWrap.appendChild(backLink);
 
   container.appendChild(gameWrap);
 
