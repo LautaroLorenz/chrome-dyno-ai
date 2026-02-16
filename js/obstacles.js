@@ -12,7 +12,8 @@ function spawnObstacle() {
     x: canvas.width,
     y: groundLevel - size,
     width: size,
-    height: size
+    height: size,
+    scored: false
   });
 }
 
@@ -65,4 +66,15 @@ export function checkCollision() {
 export function resetObstacles() {
   obstacles.length = 0;
   lastSpawnTime = Date.now();
+}
+
+export function getPointsFromPassedObstacles() {
+  let points = 0;
+  for (const obs of obstacles) {
+    if (!obs.scored && obs.x + obs.width < player.x) {
+      obs.scored = true;
+      points++;
+    }
+  }
+  return points;
 }

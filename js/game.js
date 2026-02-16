@@ -5,9 +5,11 @@ import {
   drawObstacles,
   checkCollision,
   resetObstacles,
+  getPointsFromPassedObstacles,
 } from "./obstacles.js";
 
 let gameOver = false;
+let score = 0;
 
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
@@ -22,6 +24,7 @@ document.addEventListener("keydown", (e) => {
 
 function resetGame() {
   gameOver = false;
+  score = 0;
   resetPlayer();
   resetObstacles();
 }
@@ -32,6 +35,7 @@ function gameLoop() {
   if (!gameOver) {
     updatePlayer();
     updateObstacles();
+    score += getPointsFromPassedObstacles();
     if (checkCollision()) {
       gameOver = true;
     }
@@ -39,6 +43,11 @@ function gameLoop() {
 
   drawPlayer();
   drawObstacles();
+
+  ctx.fillStyle = "#eee";
+  ctx.font = "24px system-ui";
+  ctx.textAlign = "left";
+  ctx.fillText(`Score: ${score}`, 20, 35);
 
   if (gameOver) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -50,7 +59,7 @@ function gameLoop() {
     ctx.font = "20px system-ui";
     ctx.fillStyle = "#eee";
     ctx.fillText(
-      "Espacio para reiniciar",
+      `Score: ${score} — Espacio para reiniciar`,
       canvas.width / 2,
       canvas.height / 2 + 50,
     );
