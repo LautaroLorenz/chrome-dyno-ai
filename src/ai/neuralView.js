@@ -132,6 +132,12 @@ export function drawNeuralNetwork(canvas, debug) {
           ctx.textBaseline = "middle";
           const labelX = x - NODE_RADIUS - 8;
           ctx.fillText(layer.labels[row], labelX, y);
+        } else if (col === cols - 1) {
+          // Para la última columna (salida), poner label a la derecha
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          const labelX = x + NODE_RADIUS + 8;
+          ctx.fillText(layer.labels[row], labelX, y);
         } else {
           // Para otras columnas, mantener labels abajo
           ctx.textAlign = "center";
