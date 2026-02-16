@@ -1,7 +1,14 @@
 /**
  * Visualización gráfica de la red neuronal en un canvas.
  */
-const INPUT_LABELS_SHORT = ["Dist", "Vel", "Suelo", "Tam"];
+
+/** Etiquetas junto a cada nodo de entrada */
+const INPUT_LABELS_SHORT = [
+  "1. Dist. obstáculo",
+  "2. Velocidad Y",
+  "3. En suelo",
+  "4. Tam. obstáculo",
+];
 
 const PADDING = 24;
 const NODE_RADIUS = 12;
@@ -32,6 +39,7 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
   }
 
   const { inputs, hidden, output } = debug;
+
   const layers = [
     { nodes: inputs.length, values: inputs, labels: INPUT_LABELS_SHORT, color: "#22d3ee" },
     { nodes: hidden.length, values: hidden.map((n) => n.postActivation), labels: null, color: "#a78bfa" },
@@ -46,7 +54,8 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
     const layer = layers[col];
     const x = PADDING + 50 + (col / (cols - 1)) * usableW;
     const n = layer.nodes;
-    const stepY = n > 1 ? usableH / (n - 1) : 0;
+    const minStep = col === 0 ? 32 : 0;
+    const stepY = n > 1 ? Math.max(usableH / (n - 1), minStep) : 0;
     const startY = PADDING + 14 + (n > 1 ? 0 : usableH / 2);
     const rowPos = [];
     for (let row = 0; row < n; row++) {
@@ -110,11 +119,12 @@ export function drawNeuralNetwork(canvas, debug, playerIndex, score, gen) {
       ctx.fillText(text, x, y);
 
       if (layer.labels && layer.labels[row]) {
-        ctx.fillStyle = "#94a3b8";
+        ctx.fillStyle = "#cbd5e1";
         ctx.font = "9px system-ui";
-        const offset = col === 0 ? -NODE_RADIUS - 4 : NODE_RADIUS + 4;
-        ctx.textAlign = col === 0 ? "right" : "left";
-        ctx.fillText(layer.labels[row], x + (col === 0 ? -offset : offset), y);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        const labelY = y + NODE_RADIUS + 4;
+        ctx.fillText(layer.labels[row], x, labelY);
       }
     }
   }
