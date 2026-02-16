@@ -17,7 +17,7 @@ import * as C from "./constants.js";
 const NUM_PLAYERS = 100;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
-const SCORE_GOAL = 150;
+const SCORE_GOAL = 300;
 
 let brains = [];
 let states = [];
