@@ -6,7 +6,7 @@ import { canvas, ctx, groundLevel, FPS } from "./config.js";
 import { player } from "./player.js";
 
 const obstacles = [];
-const obstacleSpeed = 5;
+export const obstacleSpeed = 5;
 const spawnIntervalFrames = Math.round((1500 / 1000) * FPS); // 90 frames ≈ 1.5s
 let lastSpawnFrame = -spawnIntervalFrames;
 

@@ -4,7 +4,7 @@
  */
 import { step, getState, resetGame, render } from "./env.js";
 
-const STATE_SIZE = 4;
+const STATE_SIZE = 7;
 const HIDDEN_SIZE = 32;
 const LEARNING_RATE = 0.001;
 const MODEL_DOWNLOAD_PREFIX = "dino-ai-model";
@@ -152,8 +152,8 @@ function drawModelViz(state) {
   ctx.fillStyle = "#0f1629";
   ctx.fillRect(0, 0, cw, ch);
 
-  const layers = [4, 12, 12, 1];
-  const inputLabels = ["Dist", "Alt", "Vel", "Suelo"];
+  const layers = [STATE_SIZE, 12, 12, 1];
+  const inputLabels = ["Dist", "ObsW", "ObsH", "PlayH", "PlayW", "Vel", "AltSuelo"];
   const outputLabel = "P(saltar)";
   const layerGap = cw / (layers.length + 1);
   const nodeRadius = 6;
@@ -194,7 +194,7 @@ function drawModelViz(state) {
       }
     }
 
-    drawConnections(0, 1, Array.from(weights0), 4, 12, 4, HIDDEN_SIZE);
+    drawConnections(0, 1, Array.from(weights0), STATE_SIZE, 12, STATE_SIZE, HIDDEN_SIZE);
     drawConnections(1, 2, Array.from(weights1), 12, 12, HIDDEN_SIZE, HIDDEN_SIZE);
     drawConnections(2, 3, Array.from(weights2), 12, 1, HIDDEN_SIZE, 1);
 
