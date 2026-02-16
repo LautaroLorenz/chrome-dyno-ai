@@ -86,7 +86,7 @@ export function startJugarAi(container) {
   redSection.appendChild(redTitle);
   const neuralCanvas = document.createElement("canvas");
   neuralCanvas.className = "red-neuronal-canvas";
-  neuralCanvas.width = 540;
+  neuralCanvas.width = 720;
   neuralCanvas.height = 460;
   redSection.appendChild(neuralCanvas);
   const legendEl = document.createElement("p");

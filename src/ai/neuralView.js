@@ -51,12 +51,13 @@ export function drawNeuralNetwork(canvas, debug) {
   ];
 
   const cols = 3;
-  const usableW = w - 2 * PADDING - 120;
+  const LABEL_WIDTH = 140; // Espacio para labels a la izquierda de la primera columna
+  const usableW = w - 2 * PADDING - LABEL_WIDTH - 120;
   const usableH = h - 2 * PADDING - 40;
   const positions = [];
   for (let col = 0; col < cols; col++) {
     const layer = layers[col];
-    const x = PADDING + 50 + (col / (cols - 1)) * usableW;
+    const x = PADDING + LABEL_WIDTH + (col / (cols - 1)) * usableW;
     const n = layer.nodes;
     const minStep = col === 0 ? 38 : 0;
     const stepY = n > 1 ? Math.max(usableH / (n - 1), minStep) : 0;
@@ -125,10 +126,19 @@ export function drawNeuralNetwork(canvas, debug) {
       if (layer.labels && layer.labels[row]) {
         ctx.fillStyle = "#cbd5e1";
         ctx.font = "10px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        const labelY = y + NODE_RADIUS + 4;
-        ctx.fillText(layer.labels[row], x, labelY);
+        if (col === 0) {
+          // Para la primera columna (entradas), poner labels a la izquierda
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          const labelX = x - NODE_RADIUS - 8;
+          ctx.fillText(layer.labels[row], labelX, y);
+        } else {
+          // Para otras columnas, mantener labels abajo
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          const labelY = y + NODE_RADIUS + 4;
+          ctx.fillText(layer.labels[row], x, labelY);
+        }
       }
     }
   }
