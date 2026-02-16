@@ -27,6 +27,8 @@ let brains = [];
 let sharedState = { players: [], obstacles: [], maxDistance: 0 };
 let levelRunner = null;
 let generation = 0;
+let bestScoreSoFar = -1;
+let generationsWithoutImprovement = 0;
 let rafId = null;
 let trainingStopped = false;
 let frameCount = 0;
@@ -163,7 +165,14 @@ function runGeneration(
 
   if (allDead) {
     const scores = sharedState.players.map((p) => p.distanceTraveled);
-    brains = nextGeneration(brains, scores, NUM_PLAYERS);
+    const maxScore = Math.max(0, ...scores);
+    if (maxScore > bestScoreSoFar) {
+      bestScoreSoFar = maxScore;
+      generationsWithoutImprovement = 0;
+    } else {
+      generationsWithoutImprovement += 1;
+    }
+    brains = nextGeneration(brains, scores, NUM_PLAYERS, generation, generationsWithoutImprovement);
     generation += 1;
     frameCount = 0;
     levelRunner = createLevelRunner(getLevel(TRAINING_LEVEL));
@@ -234,6 +243,8 @@ export function startEntrenar(container) {
   container.appendChild(navBtns);
 
   generation = 0;
+  bestScoreSoFar = -1;
+  generationsWithoutImprovement = 0;
   trainingStopped = false;
   initPlayers();
   const genEl = document.getElementById("entrenar-gen");

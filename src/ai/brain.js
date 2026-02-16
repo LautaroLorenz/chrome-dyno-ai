@@ -194,6 +194,7 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
 
 const MUTATE_RATE = 0.05; // 5% - mutación baja para no romper estrategias
 const MUTATE_AMOUNT = 0.15; // sigma de mutación gaussiana (cambios pequeños más frecuentes)
+const MUTATE_DECAY = 0.995; // por generación: rate y amount bajan (0.995^gen). Al final se afina.
 
 const TOP_PERCENT = 0.1; // Solo el 10% que llegó más lejos se reproduce
 /** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchos más hijos. */
@@ -202,16 +203,25 @@ const SELECTION_WEIGHT_POWER = 3;
 const ELITISM_COUNT = 3;
 /** Probabilidad de que un hijo sea copia exacta del padre (sin mutar). Preserva más genotipos buenos. */
 const CLONE_PROBABILITY = 0.08;
+/** Si no hay mejora durante tantas generaciones, se inyectan cerebros aleatorios (anti-estancamiento). */
+const STAGNATION_THRESHOLD = 25;
+const STAGNATION_INJECT_COUNT = 10;
 
 /**
- * Genera la siguiente generación: elitismo (mejores sin mutar) + top 20% con ruleta ponderada y mutación suave.
+ * Genera la siguiente generación: elitismo + top % con ruleta; mutación decreciente con generación; inyección de aleatorios si hay estancamiento.
+ * @param {number} generation - Generación que acaba de terminar (0, 1, 2, ...). Reduce rate y amount con el tiempo.
+ * @param {number} generationsWithoutImprovement - Generaciones seguidas sin mejorar el mejor score. Si >= STAGNATION_THRESHOLD se inyectan cerebros aleatorios.
  */
-export function nextGeneration(brains, scores, numOffspring) {
+export function nextGeneration(brains, scores, numOffspring, generation = 0, generationsWithoutImprovement = 0) {
   if (brains.length === 0 || scores.length === 0) {
     const next = [];
     for (let i = 0; i < numOffspring; i++) next.push(createRandomBrain());
     return next;
   }
+
+  const decay = Math.pow(MUTATE_DECAY, generation);
+  const rate = MUTATE_RATE * (0.5 + 0.5 * decay);
+  const amount = MUTATE_AMOUNT * (0.5 + 0.5 * decay);
 
   const indices = scores.map((s, i) => ({ i, score: s }));
   indices.sort((a, b) => b.score - a.score);
@@ -245,9 +255,17 @@ export function nextGeneration(brains, scores, numOffspring) {
     if (Math.random() < CLONE_PROBABILITY) {
       next.push(cloneBrain(parent));
     } else {
-      next.push(mutateBrain(parent, MUTATE_RATE, MUTATE_AMOUNT));
+      next.push(mutateBrain(parent, rate, amount));
     }
   }
+
+  if (generationsWithoutImprovement >= STAGNATION_THRESHOLD) {
+    const inject = Math.min(STAGNATION_INJECT_COUNT, next.length);
+    for (let i = 0; i < inject; i++) {
+      next[next.length - 1 - i] = createRandomBrain();
+    }
+  }
+
   return next;
 }
 
