@@ -189,7 +189,7 @@ export function startEntrenar(container) {
   info.innerHTML = `
     <span>Generación: <strong id="entrenar-gen">0</strong></span>
     <span style="width: 164px; display: inline-block; text-align: start;">Mejor score: <strong id="entrenar-best">0</strong> / ${SCORE_GOAL}</span>
-    <span style="width: 152px; display: inline-block; text-align: start;">Vivos: <strong id="entrenar-alive">0</strong> / ${NUM_PLAYERS}</span>
+    <span style="width: 162px; display: inline-block; text-align: start;">Vivos: <strong id="entrenar-alive">0</strong> / ${NUM_PLAYERS}</span>
     <span id="entrenar-status" class="entrenar-status"></span>
   `;
   container.appendChild(info);
