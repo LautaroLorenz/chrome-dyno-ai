@@ -1,8 +1,15 @@
 /**
- * Entrada para ver en acción un modelo descargado.
- * El usuario debe subir model.json y el archivo .weights.bin antes de empezar.
+ * Entrada para ver en acción un modelo ya entrenado.
+ * El usuario sube el único archivo descargado desde Entrenamiento (dino-ai-model.json).
  */
 import { step, getState, resetGame, render } from "./env.js";
+
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
 
 function getJumpProbability(model, state) {
   const stateTensor = tf.tensor2d([state]);
@@ -46,24 +53,24 @@ function startPlaying(model) {
   playLoop(model);
 }
 
-async function loadModelFromFiles(files) {
-  if (!files || files.length < 2) return null;
-  const sorted = Array.from(files).sort((a, b) => {
-    const aJson = a.name.toLowerCase().endsWith(".json");
-    const bJson = b.name.toLowerCase().endsWith(".json");
-    if (aJson && !bJson) return -1;
-    if (!aJson && bJson) return 1;
-    return 0;
-  });
-  const jsonFile = sorted.find((f) => f.name.toLowerCase().endsWith(".json"));
-  const weightsFile = sorted.find(
-    (f) =>
-      f.name.toLowerCase().endsWith(".weights.bin") ||
-      f.name.toLowerCase().endsWith(".bin")
-  );
-  if (!jsonFile || !weightsFile) return null;
-  // TensorFlow.js hace coincidir por nombre: el archivo de pesos debe llamarse como en el manifest (dino-ai-model.weights.bin)
-  const handler = tf.io.browserFiles([jsonFile, weightsFile]);
+/**
+ * Carga el modelo desde el único archivo (dino-ai-model.json con pesos en base64).
+ */
+async function loadModelFromSingleFile(file) {
+  if (!file || !file.name.toLowerCase().endsWith(".json")) return null;
+  const text = await file.text();
+  const data = JSON.parse(text);
+  if (!data.modelTopology || !data.weightSpecs) return null;
+  const weightData =
+    data.weightDataBase64 != null && data.weightDataBase64 !== ""
+      ? base64ToArrayBuffer(data.weightDataBase64)
+      : undefined;
+  const modelArtifacts = {
+    modelTopology: data.modelTopology,
+    weightSpecs: data.weightSpecs,
+    weightData,
+  };
+  const handler = tf.io.fromMemory(modelArtifacts);
   return await tf.loadLayersModel(handler);
 }
 
@@ -82,10 +89,10 @@ async function init() {
       errorEl.hidden = true;
       errorEl.textContent = "";
     }
-    if (!files || files.length < 2) {
+    if (!files || files.length !== 1) {
       if (errorEl) {
         errorEl.textContent =
-          "Seleccioná los dos archivos: model.json y dino-ai-model.weights.bin (en ese orden no importa).";
+          "Seleccioná el archivo del modelo (dino-ai-model.json descargado desde Entrenamiento).";
         errorEl.hidden = false;
       }
       return;
@@ -93,11 +100,11 @@ async function init() {
     btnLoad.disabled = true;
     btnLoad.textContent = "Cargando…";
     try {
-      const model = await loadModelFromFiles(files);
+      const model = await loadModelFromSingleFile(files[0]);
       if (!model) {
         if (errorEl) {
           errorEl.textContent =
-            "Seleccioná un archivo .json (model.json) y uno .weights.bin o .bin (dino-ai-model.weights.bin).";
+            "Archivo no válido. Usá el dino-ai-model.json que descargaste desde Entrenamiento.";
           errorEl.hidden = false;
         }
         btnLoad.disabled = false;
@@ -108,11 +115,8 @@ async function init() {
     } catch (err) {
       console.error("Error al cargar el modelo:", err);
       if (errorEl) {
-        const msg =
-          err && err.message && err.message.includes("basename")
-            ? "El archivo de pesos debe llamarse exactamente dino-ai-model.weights.bin (como cuando lo descargás)."
-            : "No se pudo cargar el modelo. Revisá que sean model.json y dino-ai-model.weights.bin descargados desde Entrenamiento.";
-        errorEl.textContent = msg;
+        errorEl.textContent =
+          "No se pudo cargar el modelo. Revisá que sea el archivo dino-ai-model.json descargado desde Entrenamiento.";
         errorEl.hidden = false;
       }
       btnLoad.disabled = false;

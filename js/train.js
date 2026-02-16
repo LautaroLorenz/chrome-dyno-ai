@@ -345,37 +345,40 @@ function trainLoop() {
 }
 
 /**
- * Descarga el modelo actual como model.json + archivo de pesos (para subir en play-ia).
+ * Convierte los pesos (ArrayBuffer) a base64 para guardar en un único JSON.
  */
-function downloadModelAsFiles(modelArtifacts) {
-  const weightsFileName = `${MODEL_DOWNLOAD_PREFIX}.weights.bin`;
-  const modelJSON = {
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunk = 8192;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Descarga el modelo actual como un único archivo listo para usar en play-ia.
+ * Incluye topología + pesos en base64 (formato dino-ai).
+ */
+function downloadModelAsSingleFile(modelArtifacts) {
+  const weightData = modelArtifacts.weightData;
+  const weightDataBase64 =
+    weightData != null ? arrayBufferToBase64(weightData) : "";
+  const single = {
     modelTopology: modelArtifacts.modelTopology,
-    weightsManifest: [
-      { paths: ["./" + weightsFileName], weights: modelArtifacts.weightSpecs },
-    ],
+    weightSpecs: modelArtifacts.weightSpecs,
+    weightDataBase64,
   };
-  const jsonBlob = new Blob([JSON.stringify(modelJSON)], {
+  const blob = new Blob([JSON.stringify(single)], {
     type: "application/json",
   });
-  const jsonUrl = URL.createObjectURL(jsonBlob);
-  const a1 = document.createElement("a");
-  a1.href = jsonUrl;
-  a1.download = "model.json";
-  a1.click();
-  URL.revokeObjectURL(jsonUrl);
-
-  if (modelArtifacts.weightData) {
-    const weightsBlob = new Blob([modelArtifacts.weightData], {
-      type: "application/octet-stream",
-    });
-    const weightsUrl = URL.createObjectURL(weightsBlob);
-    const a2 = document.createElement("a");
-    a2.href = weightsUrl;
-    a2.download = weightsFileName;
-    a2.click();
-    URL.revokeObjectURL(weightsUrl);
-  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dino-ai-model.json";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function downloadModel() {
@@ -388,7 +391,7 @@ async function downloadModel() {
   try {
     const handler = {
       save: async (modelArtifacts) => {
-        downloadModelAsFiles(modelArtifacts);
+        downloadModelAsSingleFile(modelArtifacts);
         return { modelArtifactsInfo: {} };
       },
     };
