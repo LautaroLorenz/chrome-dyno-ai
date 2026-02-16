@@ -5,7 +5,7 @@
 import * as C from "../constants.js";
 import { getNextObstacleInfo } from "../gameState.js";
 
-const INPUT_SIZE = 8;
+const INPUT_SIZE = 6;
 const HIDDEN_SIZE = INPUT_SIZE; // Misma cantidad de neuronas que entradas
 const OUTPUT_SIZE = 1;
 
@@ -48,7 +48,7 @@ function randomVector(n) {
 }
 
 /**
- * Crea un cerebro desde un archivo JSON (modelo actual: 8 entradas, 8 ocultas, 1 salida).
+ * Crea un cerebro desde un archivo JSON (modelo actual: 6 entradas, 6 ocultas, 1 salida).
  * @param {object} config - { brain: { W1, b1, W2, b2 } }
  * @returns {object} cerebro listo para forward()
  */
@@ -56,17 +56,30 @@ export function loadBrainFromConfig(config) {
   if (!config || !config.brain) return null;
   const b = config.brain;
   if (!b.W1 || !b.b1 || !b.W2 || !b.b2) return null;
+  let W1 = b.W1.map((row) => row.slice());
+  if (W1[0] && W1[0].length > INPUT_SIZE) {
+    W1 = W1.map((row) => row.slice(0, INPUT_SIZE));
+  }
+  if (W1.length > HIDDEN_SIZE) {
+    W1 = W1.slice(0, HIDDEN_SIZE);
+  }
+  let b1 = b.b1.slice();
+  if (b1.length > HIDDEN_SIZE) b1 = b1.slice(0, HIDDEN_SIZE);
+  let W2 = b.W2.map((row) => row.slice());
+  if (W2[0] && W2[0].length > HIDDEN_SIZE) {
+    W2 = W2.map((row) => row.slice(0, HIDDEN_SIZE));
+  }
   return {
-    W1: b.W1.map((row) => row.slice()),
-    b1: b.b1.slice(),
-    W2: b.W2.map((row) => row.slice()),
+    W1,
+    b1,
+    W2,
     b2: b.b2.slice(),
   };
 }
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (8) -> oculta (8) -> salida (1).
+ * Estructura: entrada (6) -> oculta (6) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -80,7 +93,7 @@ export function createRandomBrain() {
 /**
  * Construye el vector de entrada para la red.
  * Acepta (state) para humano/jugarAi o (player, sharedObstacles) para entrenamiento compartido.
- * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo, tiempo desde último salto, altura máxima alcanzable ]
+ * [ dist. obstáculo, vel. Y, dist. al suelo player, ancho obst., alt. obstáculo, dist. al suelo obstáculo ]
  */
 export function stateToInputs(stateOrPlayer, sharedObstacles) {
   const isShared = Array.isArray(sharedObstacles);
@@ -95,9 +108,6 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
         nextHeight: stateOrPlayer.nextObstacleHeight,
         nextGroundDist: stateOrPlayer.nextObstacleGroundDistance,
       };
-  const timeSinceLastJump = isShared
-    ? stateOrPlayer.timeSinceLastJump || 0
-    : stateOrPlayer.timeSinceLastJump || 0;
 
   const distNorm = dist == null ? 1 : Math.min(1, Math.max(0, dist / 800));
   const maxVelY = Math.abs(C.JUMP_FORCE);
@@ -118,21 +128,6 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
         )
       : 0;
 
-  const timeSinceJump = Math.min(1, timeSinceLastJump / 300);
-
-  let maxJumpHeight;
-  if (player.onGround) {
-    maxJumpHeight = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
-  } else if (player.velocityY < 0) {
-    maxJumpHeight = (player.velocityY * player.velocityY) / (2 * C.GRAVITY);
-  } else {
-    maxJumpHeight = 0;
-  }
-  const maxJumpHeightNorm = Math.min(
-    1,
-    Math.max(0, maxJumpHeight / jumpHeightMax),
-  );
-
   return [
     distNorm,
     velNorm,
@@ -140,8 +135,6 @@ export function stateToInputs(stateOrPlayer, sharedObstacles) {
     nextSize,
     nextHeight,
     nextGroundDist,
-    timeSinceJump,
-    maxJumpHeightNorm,
   ];
 }
 
@@ -279,8 +272,6 @@ export const INPUT_LABELS = [
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
   "Dist. al suelo próximo obst. (0-1)",
-  "Tiempo desde último salto (0-1)",
-  "Altura máx. alcanzable (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 
