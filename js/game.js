@@ -2,7 +2,7 @@
  * Motor principal del juego.
  * Orquesta el loop, input, step y render.
  */
-import { canvas, ctx, SURVIVAL_SCORE_BONUS } from "./config.js";
+import { canvas, ctx, groundLevel, SURVIVAL_SCORE_BONUS } from "./config.js";
 import { updatePlayer, drawPlayer, resetPlayer } from "./player.js";
 import {
   updateObstacles,
@@ -73,6 +73,14 @@ export function step(action) {
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // ground level line
+  ctx.strokeStyle = "#0f3460";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, groundLevel);
+  ctx.lineTo(canvas.width, groundLevel);
+  ctx.stroke();
 
   drawPlayer();
   drawObstacles();
