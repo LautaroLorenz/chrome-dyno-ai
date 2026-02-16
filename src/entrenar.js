@@ -16,7 +16,7 @@ import * as C from "./constants.js";
 import { getLevel, createLevelRunner } from "./levels/index.js";
 
 const NUM_PLAYERS = 10000;
-const SCORE_GOAL = 1000;
+const SCORE_GOAL = 900;
 /** Renderizar solo cada N frames (lógica sigue a 60fps, gráficos más espaciados para rendimiento). */
 const RENDER_EVERY_N_FRAMES = 2;
 
