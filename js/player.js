@@ -1,4 +1,8 @@
-import { canvas, ctx } from './config.js';
+/**
+ * Jugador (cuadrado).
+ * Estado, física del salto y dibujado.
+ */
+import { canvas, ctx } from "./config.js";
 
 export const player = {
   x: 80,

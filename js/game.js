@@ -1,13 +1,17 @@
+/**
+ * Motor principal del juego.
+ * Orquesta el loop, input, step y render.
+ */
 import { canvas, ctx } from "./config.js";
-import { player, updatePlayer, drawPlayer, resetPlayer } from "./player.js";
+import { updatePlayer, drawPlayer, resetPlayer } from "./player.js";
 import {
   updateObstacles,
   drawObstacles,
   checkCollision,
   resetObstacles,
   getPointsFromPassedObstacles,
-  getNearestObstacleInFront,
 } from "./obstacles.js";
+import { getState } from "./state.js";
 
 let gameOver = false;
 let score = 0;
@@ -32,33 +36,6 @@ export function resetGame() {
   jumpAction = false;
   resetPlayer();
   resetObstacles(frameCount);
-}
-
-/**
- * Devuelve el estado del juego normalizado para la IA.
- * [0] distancia al obstáculo más cercano (0-1, 1 = sin obstáculo cerca)
- * [1] altura del obstáculo (0-1)
- * [2] velocidad Y del jugador normalizada (-1 a 1)
- * [3] jugador en suelo (0 o 1)
- */
-export function getState() {
-  const obs = getNearestObstacleInFront();
-  const maxDistance = canvas.width;
-  const maxVelocity = 20;
-
-  let distanceNorm = 1;
-  let obstacleHeightNorm = 0;
-
-  if (obs) {
-    const distance = obs.x - (player.x + player.size);
-    distanceNorm = distance > 0 ? Math.min(1, distance / maxDistance) : 0;
-    obstacleHeightNorm = Math.min(1, obs.height / 50);
-  }
-
-  const velocityNorm = Math.max(-1, Math.min(1, player.velocityY / maxVelocity));
-  const isGrounded = player.y >= player.groundY ? 1 : 0;
-
-  return [distanceNorm, obstacleHeightNorm, velocityNorm, isGrounded];
 }
 
 /**

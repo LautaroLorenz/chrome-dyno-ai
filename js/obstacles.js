@@ -1,5 +1,9 @@
-import { canvas, ctx, groundLevel, FPS } from './config.js';
-import { player } from './player.js';
+/**
+ * Obstáculos (triángulos).
+ * Spawn, movimiento, colisiones y detección del más cercano.
+ */
+import { canvas, ctx, groundLevel, FPS } from "./config.js";
+import { player } from "./player.js";
 
 const obstacles = [];
 const obstacleSpeed = 5;
