@@ -217,10 +217,10 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
 }
 
 const NUM_OFFSPRING = 20;
-const MUTATE_RATE = 0.1; // 10% - mutación baja
-const MUTATE_AMOUNT = 0.2; // ±0.2 - cambio pequeño
+const MUTATE_RATE = 0.05; // 5% - mutación baja
+const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
 
-const TOP_PERCENT = 0.2; // Solo el 20% que llegó más lejos se reproduce
+const TOP_PERCENT = 0.01; // Solo el 1% que llegó más lejos se reproduce
 
 /**
  * Genera la siguiente generación: solo el top 20% se reproduce; a mayor score, más descendientes (ruleta ponderada).
