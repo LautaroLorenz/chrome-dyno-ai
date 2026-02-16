@@ -223,11 +223,7 @@ const MUTATE_AMOUNT = 0.2; // ±0.2 - cambio pequeño
 const TOP_PERCENT = 0.2; // Solo el 20% que llegó más lejos se reproduce
 
 /**
- * Genera la siguiente generación: solo el top 20% (por score) se reproduce con pequeñas mutaciones.
- * @param {object[]} brains - Array de cerebros de la generación actual
- * @param {number[]} scores - Array de scores correspondientes a cada cerebro
- * @param {number} numOffspring - Número de descendientes a generar
- * @returns {object[]} Array de nuevos cerebros para la siguiente generación
+ * Genera la siguiente generación: solo el top 20% se reproduce; a mayor score, más descendientes (ruleta ponderada).
  */
 export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
   if (brains.length === 0 || scores.length === 0) {
@@ -239,11 +235,24 @@ export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
   const indices = scores.map((s, i) => ({ i, score: s }));
   indices.sort((a, b) => b.score - a.score);
   const topCount = Math.max(1, Math.floor(brains.length * TOP_PERCENT));
-  const topIndices = indices.slice(0, topCount).map((x) => x.i);
+  const top = indices.slice(0, topCount);
+  const topIndices = top.map((x) => x.i);
+  const topScores = top.map((x) => x.score + 1e-6);
+  const sum = topScores.reduce((a, b) => a + b, 0);
 
   const next = [];
   for (let k = 0; k < numOffspring; k++) {
-    const parentIdx = topIndices[Math.floor(Math.random() * topIndices.length)];
+    let r = Math.random() * sum;
+    let parentPos = 0;
+    for (let i = 0; i < topScores.length; i++) {
+      r -= topScores[i];
+      if (r <= 0) {
+        parentPos = i;
+        break;
+      }
+      parentPos = i;
+    }
+    const parentIdx = topIndices[parentPos];
     next.push(mutateBrain(brains[parentIdx], MUTATE_RATE, MUTATE_AMOUNT));
   }
   return next;
