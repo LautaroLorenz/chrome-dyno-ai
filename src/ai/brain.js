@@ -216,15 +216,17 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   return b;
 }
 
-const MUTATE_RATE = 0.1; // 10% - mutación baja
-const MUTATE_AMOUNT = 0.25; // ±0.25 - cambio pequeño
+const MUTATE_RATE = 0.05; // 5% - mutación baja para no romper estrategias
+const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
 
-const TOP_PERCENT = 0.01; // Solo el 10% que llegó más lejos se reproduce
-/** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchísimos más hijos. */
+const TOP_PERCENT = 0.2; // Solo el 20% que llegó más lejos se reproduce
+/** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchos más hijos. */
 const SELECTION_WEIGHT_POWER = 3;
+/** Cuántos mejores pasan sin mutar a la siguiente generación (elitismo). */
+const ELITISM_COUNT = 3;
 
 /**
- * Genera la siguiente generación: top 20% se reproduce; a mayor score, muchos más descendientes (ruleta con peso score^POWER).
+ * Genera la siguiente generación: elitismo (mejores sin mutar) + top 20% con ruleta ponderada y mutación suave.
  */
 export function nextGeneration(brains, scores, numOffspring) {
   if (brains.length === 0 || scores.length === 0) {
@@ -244,7 +246,12 @@ export function nextGeneration(brains, scores, numOffspring) {
   const sum = topScores.reduce((a, b) => a + b, 0);
 
   const next = [];
-  for (let k = 0; k < numOffspring; k++) {
+  const elite = Math.min(ELITISM_COUNT, numOffspring, indices.length);
+  for (let e = 0; e < elite; e++) {
+    next.push(cloneBrain(brains[indices[e].i]));
+  }
+  const toFill = numOffspring - next.length;
+  for (let k = 0; k < toFill; k++) {
     let r = Math.random() * sum;
     let parentPos = 0;
     for (let i = 0; i < topScores.length; i++) {
