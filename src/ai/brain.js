@@ -216,16 +216,17 @@ function mutateBrain(brain, rate = 0.1, amount = 0.3) {
   return b;
 }
 
-const NUM_OFFSPRING = 20;
 const MUTATE_RATE = 0.05; // 5% - mutación baja
-const MUTATE_AMOUNT = 0.15; // ±0.15 - cambio pequeño
+const MUTATE_AMOUNT = 0.25; // ±0.25 - cambio pequeño
 
-const TOP_PERCENT = 0.01; // Solo el 1% que llegó más lejos se reproduce
+const TOP_PERCENT = 0.001; // Solo el 0.1% que llegó más lejos se reproduce
+/** Peso = (score + eps)^POWER: mayor potencia → el mejor tiene muchísimos más hijos. */
+const SELECTION_WEIGHT_POWER = 3;
 
 /**
- * Genera la siguiente generación: solo el top 20% se reproduce; a mayor score, más descendientes (ruleta ponderada).
+ * Genera la siguiente generación: top 20% se reproduce; a mayor score, muchos más descendientes (ruleta con peso score^POWER).
  */
-export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
+export function nextGeneration(brains, scores, numOffspring) {
   if (brains.length === 0 || scores.length === 0) {
     const next = [];
     for (let i = 0; i < numOffspring; i++) next.push(createRandomBrain());
@@ -237,7 +238,9 @@ export function nextGeneration(brains, scores, numOffspring = NUM_OFFSPRING) {
   const topCount = Math.max(1, Math.floor(brains.length * TOP_PERCENT));
   const top = indices.slice(0, topCount);
   const topIndices = top.map((x) => x.i);
-  const topScores = top.map((x) => x.score + 1e-6);
+  const topScores = top.map((x) =>
+    Math.pow(x.score + 1e-6, SELECTION_WEIGHT_POWER),
+  );
   const sum = topScores.reduce((a, b) => a + b, 0);
 
   const next = [];
