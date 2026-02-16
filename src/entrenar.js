@@ -17,11 +17,13 @@ import * as C from "./constants.js";
 const NUM_PLAYERS = 10;
 const MINI_WIDTH = 200;
 const MINI_HEIGHT = 40;
+const SCORE_GOAL = 100;
 
 let brains = [];
 let states = [];
 let generation = 0;
 let rafId = null;
+let trainingStopped = false;
 
 function initPlayers() {
   brains = [];
@@ -76,9 +78,53 @@ function renderAll(canvases, genEl, bestEl, redCanvas, redLegend) {
   updateRedNeuronalPanel(redCanvas, redLegend);
 }
 
-function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend) {
+function getBestBrainIndex() {
+  let best = 0;
+  for (let i = 1; i < brains.length; i++) {
+    if (states[i].score > states[best].score) best = i;
+  }
+  return best;
+}
+
+function downloadModel() {
+  if (brains.length === 0) return;
+  const idx = getBestBrainIndex();
+  const brain = brains[idx];
+  const score = states[idx].score;
+  const config = {
+    version: 1,
+    generation,
+    bestScore: Math.floor(score),
+    brain: {
+      W1: brain.W1,
+      b1: brain.b1,
+      W2: brain.W2,
+      b2: brain.b2,
+    },
+  };
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `brain-config-gen${generation}-score${Math.floor(score)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload) {
+  if (trainingStopped) return;
   const allDead = stepAll();
   renderAll(canvases, genEl, bestEl, redCanvas, redLegend);
+
+  const maxScore = states.reduce((m, s) => Math.max(m, s.score), 0);
+  if (maxScore >= SCORE_GOAL) {
+    trainingStopped = true;
+    if (genEl) genEl.textContent = generation + " ✓";
+    const statusEl = document.getElementById("entrenar-status");
+    if (statusEl) statusEl.textContent = "Entrenamiento completado. Descarga el modelo abajo.";
+    if (btnDownload) btnDownload.disabled = false;
+    return;
+  }
+
   if (allDead) {
     const scores = states.map((s) => s.score);
     brains = nextGeneration(brains, scores);
@@ -87,7 +133,7 @@ function runGeneration(canvases, genEl, bestEl, redCanvas, redLegend) {
       states[i] = createInitialState();
     }
   }
-  rafId = requestAnimationFrame(() => runGeneration(canvases, genEl, bestEl, redCanvas, redLegend));
+  rafId = requestAnimationFrame(() => runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload));
 }
 
 export function startEntrenar(container) {
@@ -100,7 +146,8 @@ export function startEntrenar(container) {
   info.className = "entrenar-info";
   info.innerHTML = `
     <span>Generación: <strong id="entrenar-gen">0</strong></span>
-    <span>Mejor score: <strong id="entrenar-best">0</strong></span>
+    <span>Mejor score: <strong id="entrenar-best">0</strong> / ${SCORE_GOAL}</span>
+    <span id="entrenar-status" class="entrenar-status"></span>
   `;
   container.appendChild(info);
 
@@ -134,17 +181,28 @@ export function startEntrenar(container) {
   redSection.appendChild(redLegend);
   container.appendChild(redSection);
 
+  const navBtns = document.createElement("div");
+  navBtns.className = "entrenar-nav-btns";
   const backLink = document.createElement("a");
   backLink.href = "index.html";
   backLink.className = "btn-back";
   backLink.textContent = "← Volver al menú";
-  container.appendChild(backLink);
+  const btnDownload = document.createElement("button");
+  btnDownload.className = "btn-download entrenar-download";
+  btnDownload.textContent = "Descargar modelo entrenado";
+  btnDownload.type = "button";
+  btnDownload.disabled = true;
+  btnDownload.addEventListener("click", downloadModel);
+  navBtns.appendChild(backLink);
+  navBtns.appendChild(btnDownload);
+  container.appendChild(navBtns);
 
   generation = 0;
+  trainingStopped = false;
   initPlayers();
   const genEl = document.getElementById("entrenar-gen");
   const bestEl = document.getElementById("entrenar-best");
-  runGeneration(canvases, genEl, bestEl, redCanvas, redLegend);
+  runGeneration(canvases, genEl, bestEl, redCanvas, redLegend, btnDownload);
 
   return function stop() {
     if (rafId != null) cancelAnimationFrame(rafId);
