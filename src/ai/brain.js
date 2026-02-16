@@ -4,7 +4,7 @@
  */
 import * as C from "../constants.js";
 
-const INPUT_SIZE = 6;
+const INPUT_SIZE = 8;
 const HIDDEN_SIZE = 12;
 const OUTPUT_SIZE = 1;
 
@@ -51,13 +51,28 @@ export function loadBrainFromConfig(config) {
   if (W1[0]) {
     const currentSize = W1[0].length;
     if (currentSize === 4) {
-      // Migrar de 4 a 6 entradas: añadir 2 columnas
+      // Migrar de 4 a 8 entradas: añadir 4 columnas
       for (let i = 0; i < W1.length; i++) {
+        W1[i].push((Math.random() - 0.5) * 2);
+        W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
         W1[i].push((Math.random() - 0.5) * 2);
       }
     } else if (currentSize === 5) {
-      // Migrar de 5 a 6 entradas: añadir 1 columna
+      // Migrar de 5 a 8 entradas: añadir 3 columnas
+      for (let i = 0; i < W1.length; i++) {
+        W1[i].push((Math.random() - 0.5) * 2);
+        W1[i].push((Math.random() - 0.5) * 2);
+        W1[i].push((Math.random() - 0.5) * 2);
+      }
+    } else if (currentSize === 6) {
+      // Migrar de 6 a 8 entradas: añadir 2 columnas
+      for (let i = 0; i < W1.length; i++) {
+        W1[i].push((Math.random() - 0.5) * 2);
+        W1[i].push((Math.random() - 0.5) * 2);
+      }
+    } else if (currentSize === 7) {
+      // Migrar de 7 a 8 entradas: añadir 1 columna
       for (let i = 0; i < W1.length; i++) {
         W1[i].push((Math.random() - 0.5) * 2);
       }
@@ -73,7 +88,7 @@ export function loadBrainFromConfig(config) {
 
 /**
  * Crea un cerebro con pesos y bias aleatorios.
- * Estructura: entrada (6) -> oculta (12) -> salida (1).
+ * Estructura: entrada (8) -> oculta (12) -> salida (1).
  */
 export function createRandomBrain() {
   return {
@@ -86,7 +101,7 @@ export function createRandomBrain() {
 
 /**
  * Construye el vector de entrada para la red a partir del estado del juego.
- * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo ]
+ * [ dist. obstáculo, vel. Y, dist. al suelo player, tam. obstáculo, alt. obstáculo, dist. al suelo obstáculo, tiempo desde último salto, altura máxima alcanzable ]
  */
 export function stateToInputs(state) {
   const dist = state.distanceToNextObstacle;
@@ -104,7 +119,28 @@ export function stateToInputs(state) {
     state.nextObstacleHeight != null ? state.nextObstacleHeight / 80 : 0;
   const nextGroundDist =
     state.nextObstacleGroundDistance != null ? Math.min(1, Math.max(0, state.nextObstacleGroundDistance / 80)) : 0;
-  return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist];
+  
+  // Tiempo desde el último salto (normalizado, máximo ~300 frames = 5 segundos a 60fps)
+  const timeSinceJump = Math.min(1, (state.timeSinceLastJump || 0) / 300);
+  
+  // Altura máxima alcanzable desde la posición actual
+  // Si está subiendo (velocityY < 0): altura = (velocityY²) / (2 * GRAVITY)
+  // Si está en el suelo: altura máxima = (JUMP_FORCE²) / (2 * GRAVITY) ≈ 120px
+  // Si está cayendo (velocityY >= 0): altura máxima = 0
+  let maxJumpHeight;
+  if (state.player.onGround) {
+    // En el suelo, puede saltar con JUMP_FORCE
+    maxJumpHeight = (C.JUMP_FORCE * C.JUMP_FORCE) / (2 * C.GRAVITY);
+  } else if (state.player.velocityY < 0) {
+    // Está subiendo, calcular altura restante
+    maxJumpHeight = (state.player.velocityY * state.player.velocityY) / (2 * C.GRAVITY);
+  } else {
+    // Está cayendo, no puede subir más
+    maxJumpHeight = 0;
+  }
+  const maxJumpHeightNorm = Math.min(1, Math.max(0, maxJumpHeight / 120));
+  
+  return [distNorm, velNorm, playerGroundDist, nextSize, nextHeight, nextGroundDist, timeSinceJump, maxJumpHeightNorm];
 }
 
 /**
@@ -218,6 +254,8 @@ export const INPUT_LABELS = [
   "Ancho próximo obst. (0-1)",
   "Altura próximo obst. (0-1)",
   "Dist. al suelo próximo obst. (0-1)",
+  "Tiempo desde último salto (0-1)",
+  "Altura máx. alcanzable (0-1)",
 ];
 export const OUTPUT_LABELS = ["Saltar (prob.)"];
 

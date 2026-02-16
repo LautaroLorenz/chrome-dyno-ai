@@ -26,6 +26,8 @@ export function createInitialState() {
     nextObstacleHeight: null,
     /** Distancia al suelo del próximo obstáculo (para IA). */
     nextObstacleGroundDistance: null,
+    /** Tiempo desde el último salto (en frames, para IA). */
+    timeSinceLastJump: 0,
   };
 }
 
@@ -41,6 +43,9 @@ export function updateState(state, playerJumps) {
   if (playerJumps && player.onGround) {
     player.velocityY = C.JUMP_FORCE;
     player.onGround = false;
+    state.timeSinceLastJump = 0;
+  } else {
+    state.timeSinceLastJump = (state.timeSinceLastJump || 0) + 1;
   }
 
   player.velocityY += C.GRAVITY;
@@ -110,6 +115,7 @@ export function getStateSnapshot(state) {
     nextObstacleSize: state.nextObstacleSize,
     nextObstacleHeight: state.nextObstacleHeight,
     nextObstacleGroundDistance: state.nextObstacleGroundDistance,
+    timeSinceLastJump: state.timeSinceLastJump,
   };
 }
 
